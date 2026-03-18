@@ -198,6 +198,7 @@
     position: relative;
   }
   .todo-row:last-child { border-bottom: none; }
+  [data-row-wrap]:last-child .todo-row { border-bottom: none; }
   .todo-row::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0;
     width: 3px; border-radius: 0;
@@ -252,6 +253,38 @@
   .status-badge.pending { color: var(--pending-dark); background: var(--pending-bg); border-color: var(--pending-border); }
   .status-badge.review  { color: var(--review-dark);  background: var(--review-bg);  border-color: var(--review-border); }
   .status-badge.na      { color: var(--na-dark);      background: var(--na-bg);      border-color: var(--na-border); }
+
+  /* How-to-test button */
+  .how-test-btn {
+    flex-shrink: 0; margin-top: 1px;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: var(--radius-sm);
+    font-size: .72rem; font-weight: 500;
+    color: var(--primary-light); background: var(--primary-pale);
+    border: 1px solid #c7d2fe;
+    cursor: pointer; white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+    user-select: none;
+  }
+  .how-test-btn:hover { background: #e0e7ff; border-color: #a5b4fc; }
+  .how-test-btn.open  { background: var(--primary-light); color: #fff; border-color: var(--primary-light); }
+
+  /* How-to-test panel */
+  .how-test-panel {
+    display: none;
+    margin: 0 14px 10px calc(20px + 12px + 14px); /* align with row-body */
+    padding: 12px 14px;
+    background: var(--primary-pale);
+    border: 1px solid #c7d2fe;
+    border-radius: var(--radius-sm);
+    font-size: .82rem; color: #3730a3;
+    line-height: 1.6;
+  }
+  .how-test-panel.open { display: block; }
+  .how-test-panel-title {
+    font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--primary-light); margin-bottom: 6px; display: flex; align-items: center; gap: 5px;
+  }
 
   /* ── Empty state ────────────────────────────────────────────────────────── */
   .empty-state {
@@ -455,7 +488,7 @@ function buildSubPanel(sub, si, ti, active) {
 
     const card = el('div','section-card');
     (sec.items||[]).forEach(item => {
-      card.appendChild(buildRow(item, pid));
+      card.appendChild(buildRow(item, pid)); // returns wrap div (row + optional how-test-panel)
     });
     if (!sec.items?.length) {
       card.innerHTML = `<div class="empty-state">${svg('<path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 12.5a5.5 5.5 0 110-11 5.5 5.5 0 010 11z"/>',24)}<span>Sin ítems</span></div>`;
@@ -468,13 +501,25 @@ function buildSubPanel(sub, si, ti, active) {
   return panel;
 }
 
+const ICON_HOW  = svg(`<path fill-rule="evenodd" d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 5a1 1 0 112 0v4a1 1 0 11-2 0V5zm1 7a1.25 1.25 0 100-2.5A1.25 1.25 0 009 12z"/>`, 12);
+const ICON_PLAY = svg(`<path d="M3 2.5v11l10-5.5L3 2.5z"/>`, 11);
+
 function buildRow(item, pid) {
   const status = getStatus(item.id, item.status);
+
+  // Wrapper: both the row and (optionally) the how-test panel go inside
+  const wrap = el('div');
+  wrap.dataset.rowWrap = item.id;
+
   const row = el('div', `todo-row ${status}`);
   row.dataset.id  = item.id;
   row.dataset.st  = status;
   row.dataset.lbl = (item.label||'').toLowerCase();
   row.dataset.pid = pid;
+
+  const howBtn = item.how_to_test
+    ? `<button class="how-test-btn" data-id="${item.id}" title="Cómo probar">${ICON_HOW} Cómo probar</button>`
+    : '';
 
   row.innerHTML = `
     <div class="toggle ${status}">${STATUS_ICON[status]}</div>
@@ -483,10 +528,31 @@ function buildRow(item, pid) {
       ${item.tech_name ? `<div class="row-tech">${item.tech_name}</div>` : ''}
       ${item.notes     ? `<div class="row-note">${item.notes}</div>` : ''}
     </div>
+    ${howBtn}
     <div class="status-badge ${status}">${STATUS_LABEL[status]}</div>`;
 
-  row.addEventListener('click', () => cycleRow(row, pid));
-  return row;
+  row.addEventListener('click', e => {
+    if (e.target.closest('.how-test-btn')) return; // handled separately
+    cycleRow(row, pid);
+  });
+  wrap.appendChild(row);
+
+  if (item.how_to_test) {
+    const panel = el('div', 'how-test-panel');
+    panel.dataset.id = item.id;
+    panel.innerHTML = `
+      <div class="how-test-panel-title">${ICON_PLAY} Cómo probar</div>
+      ${item.how_to_test}`;
+    wrap.appendChild(panel);
+
+    row.querySelector('.how-test-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      const open = panel.classList.toggle('open');
+      e.currentTarget.classList.toggle('open', open);
+    });
+  }
+
+  return wrap;
 }
 
 function cycleRow(row, pid) {

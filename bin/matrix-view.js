@@ -49,7 +49,8 @@ if (args[0] === '--schema') {
                     label: "Nombre legible (traducido)",
                     tech_name: "nombre_tecnico_opcional",
                     status: "pending | done | review | na",
-                    notes: "Nota opcional explicativa"
+                    notes: "Nota opcional explicativa",
+                    how_to_test: "Descripción humana de cómo probar esta funcionalidad (opcional). Admite HTML básico."
                   }
                 ]
               }
