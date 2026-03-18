@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>matrix-view</title>
+<style>
+  :root {
+    --ok: #16a34a; --ok-bg: #f0fdf4; --ok-border: #bbf7d0;
+    --missing: #dc2626; --missing-bg: #fef2f2; --missing-border: #fecaca;
+    --partial: #d97706; --partial-bg: #fffbeb; --partial-border: #fde68a;
+    --new: #2563eb; --new-bg: #eff6ff; --new-border: #bfdbfe;
+    --unknown: #6b7280; --unknown-bg: #f9fafb; --unknown-border: #e5e7eb;
+    --tab-active: #1e293b; --tab-inactive: #64748b;
+    --surface: #fff; --bg: #f8fafc; --border: #e2e8f0;
+    --text: #1e293b; --text-muted: #64748b;
+    --radius: 8px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { background: var(--tab-active); color: #fff; padding: 24px 32px; }
+  .header h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 6px; }
+  .header-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+           background: rgba(255,255,255,0.12); padding: 3px 10px; border-radius: 99px; }
+
+  .summary { display: flex; gap: 12px; padding: 20px 32px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .stat { display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+          border-radius: var(--radius); font-size: 0.85rem; font-weight: 500; border: 1px solid; }
+  .stat.ok    { color: var(--ok);      background: var(--ok-bg);      border-color: var(--ok-border); }
+  .stat.missing { color: var(--missing); background: var(--missing-bg); border-color: var(--missing-border); }
+  .stat.partial { color: var(--partial); background: var(--partial-bg); border-color: var(--partial-border); }
+  .stat.new   { color: var(--new);     background: var(--new-bg);     border-color: var(--new-border); }
+  .stat.unknown { color: var(--unknown); background: var(--unknown-bg); border-color: var(--unknown-border); }
+  .stat-count { font-size: 1.1rem; font-weight: 700; }
+
+  .tabs-nav { display: flex; gap: 0; padding: 0 32px; background: var(--surface);
+              border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn { padding: 12px 18px; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+             background: none; border: none; border-bottom: 2px solid transparent;
+             color: var(--tab-inactive); white-space: nowrap; transition: all 0.15s; }
+  .tab-btn:hover { color: var(--tab-active); }
+  .tab-btn.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+  .tab-btn .tab-counts { display: inline-flex; gap: 4px; margin-left: 8px; }
+  .tab-btn .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot.ok { background: var(--ok); }
+  .dot.missing { background: var(--missing); }
+  .dot.partial { background: var(--partial); }
+  .dot.new { background: var(--new); }
+  .dot.unknown { background: var(--unknown); }
+
+  .content { padding: 24px 32px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .search-box { padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+                font-size: 0.875rem; width: 240px; outline: none; }
+  .search-box:focus { border-color: var(--tab-active); }
+  .filter-btns { display: flex; gap: 6px; }
+  .filter-btn { padding: 5px 12px; font-size: 0.8rem; border-radius: 99px; cursor: pointer;
+                border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
+                transition: all 0.15s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--tab-active); color: #fff; border-color: var(--tab-active); }
+
+  .matrix-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; background: var(--surface);
+                  border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .matrix-table th { background: var(--tab-active); color: #fff; padding: 10px 16px;
+                     text-align: left; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.03em; white-space: nowrap; }
+  .matrix-table th:first-child { width: 30%; min-width: 200px; }
+  .matrix-table th:not(:first-child):not(:last-child) { text-align: center; }
+  .matrix-table th:last-child { text-align: center; width: 80px; }
+
+  .matrix-table td { padding: 9px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .matrix-table tr:last-child td { border-bottom: none; }
+  .matrix-table tr:hover td { background: var(--bg); }
+  .matrix-table td:not(:first-child) { text-align: center; }
+
+  .row-label { display: flex; flex-direction: column; gap: 2px; }
+  .row-label .label { font-weight: 500; }
+  .row-label .tech { font-size: 0.75rem; color: var(--text-muted); font-family: 'SF Mono', monospace; }
+  .row-label .note { font-size: 0.75rem; color: var(--partial); margin-top: 2px; }
+
+  .status-chip { display: inline-flex; align-items: center; justify-content: center;
+                 width: 28px; height: 28px; border-radius: 50%; font-size: 1rem;
+                 border: 1px solid transparent; }
+  .status-chip.ok      { background: var(--ok-bg);      border-color: var(--ok-border); }
+  .status-chip.missing { background: var(--missing-bg); border-color: var(--missing-border); }
+  .status-chip.partial { background: var(--partial-bg); border-color: var(--partial-border); }
+  .status-chip.new     { background: var(--new-bg);     border-color: var(--new-border); }
+  .status-chip.unknown { background: var(--unknown-bg); border-color: var(--unknown-border); }
+
+  .overall-status { display: inline-block; padding: 3px 10px; border-radius: 99px;
+                    font-size: 0.75rem; font-weight: 600; }
+  .overall-status.ok      { color: var(--ok);      background: var(--ok-bg);      border: 1px solid var(--ok-border); }
+  .overall-status.missing { color: var(--missing); background: var(--missing-bg); border: 1px solid var(--missing-border); }
+  .overall-status.partial { color: var(--partial); background: var(--partial-bg); border: 1px solid var(--partial-border); }
+  .overall-status.new     { color: var(--new);     background: var(--new-bg);     border: 1px solid var(--new-border); }
+  .overall-status.unknown { color: var(--unknown); background: var(--unknown-bg); border: 1px solid var(--unknown-border); }
+
+  .flag-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+                 background: var(--new-bg); border: 1px solid var(--new-border);
+                 border-radius: var(--radius); margin-bottom: 20px; font-size: 0.85rem; }
+  .flag-banner code { font-family: 'SF Mono', monospace; font-size: 0.8rem; background: var(--new-border);
+                      padding: 2px 6px; border-radius: 4px; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 768px) {
+    .header, .summary, .tabs-nav, .content { padding-left: 16px; padding-right: 16px; }
+    .search-box { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<script>
+/*__MATRIX_DATA__*/
+
+const STATUS_ICONS = { ok: '✅', missing: '❌', partial: '⚠️', new: '🆕', unknown: '❓' };
+const STATUS_LABELS = { ok: 'Completo', missing: 'Faltante', partial: 'Parcial', new: 'Nuevo', unknown: 'Sin determinar' };
+
+function computeOverallStatus(values, statuses) {
+  if (statuses && statuses.length > 0) return statuses[0];
+  const icons = values || [];
+  if (icons.some(v => v === '❌')) return 'missing';
+  if (icons.some(v => v === '⚠️')) return 'partial';
+  if (icons.some(v => v === '🆕')) return 'new';
+  if (icons.some(v => v === '❓')) return 'unknown';
+  return 'ok';
+}
+
+function countStatuses(group) {
+  const counts = { ok: 0, missing: 0, partial: 0, new: 0, unknown: 0 };
+  (group.rows || []).forEach(row => {
+    const s = row.status || computeOverallStatus(row.values);
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  return counts;
+}
+
+function buildHeader() {
+  const m = MATRIX_DATA;
+  const el = document.createElement('div');
+  el.className = 'header';
+  const meta = [];
+  if (m.context) meta.push(`<span class="badge">📋 ${m.context}</span>`);
+  if (m.generated_at) meta.push(`<span class="badge">🕐 ${new Date(m.generated_at).toLocaleString('es')}</span>`);
+  if (m.source_url) meta.push(`<span class="badge">🔗 ${m.source_url}</span>`);
+  el.innerHTML = `<h1>${m.title || 'Matriz de funcionalidades'}</h1><div class="header-meta">${meta.join('')}</div>`;
+  return el;
+}
+
+function buildSummary(allGroups) {
+  const totals = { ok: 0, missing: 0, partial: 0, new: 0, unknown: 0 };
+  allGroups.forEach(g => {
+    const c = countStatuses(g);
+    Object.keys(totals).forEach(k => totals[k] += c[k]);
+  });
+  const el = document.createElement('div');
+  el.className = 'summary';
+  Object.entries(totals).filter(([, v]) => v > 0).forEach(([status, count]) => {
+    el.innerHTML += `<div class="stat ${status}"><span class="stat-count">${count}</span>${STATUS_ICONS[status]} ${STATUS_LABELS[status]}</div>`;
+  });
+  return el;
+}
+
+function buildTabsNav(groups, activeIndex) {
+  const nav = document.createElement('div');
+  nav.className = 'tabs-nav';
+  groups.forEach((g, i) => {
+    const counts = countStatuses(g);
+    const dots = Object.entries(counts).filter(([,v]) => v > 0)
+      .map(([s, v]) => `<span class="dot ${s}" title="${v} ${STATUS_LABELS[s]}"></span>`).join('');
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === activeIndex ? ' active' : '');
+    btn.innerHTML = `${g.name} <span class="tab-counts">${dots}</span>`;
+    btn.dataset.tabIndex = i;
+    nav.appendChild(btn);
+  });
+  return nav;
+}
+
+function buildPanel(group, panelIndex, xAxes, isActive) {
+  const panel = document.createElement('div');
+  panel.className = 'tab-panel' + (isActive ? ' active' : '');
+  panel.dataset.panelIndex = panelIndex;
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'toolbar';
+  toolbar.innerHTML = `<input class="search-box" type="text" placeholder="Buscar funcionalidad..." data-panel="${panelIndex}">
+    <div class="filter-btns">
+      <button class="filter-btn active" data-filter="all" data-panel="${panelIndex}">Todos</button>
+      ${Object.entries(STATUS_ICONS).map(([s, icon]) => `<button class="filter-btn" data-filter="${s}" data-panel="${panelIndex}">${icon} ${STATUS_LABELS[s]}</button>`).join('')}
+    </div>`;
+  panel.appendChild(toolbar);
+
+  const table = document.createElement('table');
+  table.className = 'matrix-table';
+  table.innerHTML = `<thead><tr>
+    <th>Funcionalidad</th>
+    ${xAxes.map(x => `<th>${x}</th>`).join('')}
+    <th>Estado</th>
+  </tr></thead>`;
+
+  const tbody = document.createElement('tbody');
+  (group.rows || []).forEach(row => {
+    const status = row.status || computeOverallStatus(row.values);
+    const tr = document.createElement('tr');
+    tr.dataset.status = status;
+    tr.dataset.label = (row.label || '').toLowerCase();
+
+    const labelHtml = `<div class="row-label">
+      <span class="label">${row.label || ''}</span>
+      ${row.tech_name ? `<span class="tech">${row.tech_name}</span>` : ''}
+      ${row.notes ? `<span class="note">${row.notes}</span>` : ''}
+    </div>`;
+
+    const valueCells = (row.values || xAxes.map(() => '❓'))
+      .map(v => {
+        const s = v === '✅' ? 'ok' : v === '❌' ? 'missing' : v === '⚠️' ? 'partial' : v === '🆕' ? 'new' : 'unknown';
+        return `<td><span class="status-chip ${s}" title="${v}">${v}</span></td>`;
+      }).join('');
+
+    tr.innerHTML = `<td>${labelHtml}</td>${valueCells}
+      <td><span class="overall-status ${status}">${STATUS_ICONS[status]} ${STATUS_LABELS[status]}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  panel.appendChild(table);
+  return panel;
+}
+
+function render() {
+  const m = MATRIX_DATA;
+  const groups = m.axes?.y_groups || [];
+  const xAxes = m.axes?.x || [];
+
+  document.title = m.title || 'matrix-view';
+  document.body.appendChild(buildHeader());
+  document.body.appendChild(buildSummary(groups));
+
+  if (m.feature_flag) {
+    const banner = document.createElement('div');
+    banner.innerHTML = `<div style="padding:0 32px;margin-top:16px"><div class="flag-banner">🚩 Feature Flag activo: <code>${m.feature_flag}</code></div></div>`;
+    document.body.appendChild(banner);
+  }
+
+  const nav = buildTabsNav(groups, 0);
+  document.body.appendChild(nav);
+
+  const content = document.createElement('div');
+  content.className = 'content';
+  groups.forEach((g, i) => content.appendChild(buildPanel(g, i, xAxes, i === 0)));
+  document.body.appendChild(content);
+
+  // Tab navigation
+  nav.addEventListener('click', e => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.tabIndex);
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`.tab-panel[data-panel-index="${idx}"]`)?.classList.add('active');
+  });
+
+  // Fix: use dataset correctly
+  content.querySelectorAll('.tab-panel').forEach((p, i) => p.dataset.panelIndex = i);
+
+  // Search + filter
+  content.addEventListener('input', e => {
+    if (!e.target.classList.contains('search-box')) return;
+    const panelIdx = e.target.dataset.panel;
+    const q = e.target.value.toLowerCase();
+    filterRows(panelIdx, q, content.querySelector(`.filter-btn.active[data-panel="${panelIdx}"]`)?.dataset.filter || 'all');
+  });
+
+  content.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    const panelIdx = btn.dataset.panel;
+    content.querySelectorAll(`.filter-btn[data-panel="${panelIdx}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const q = content.querySelector(`.search-box[data-panel="${panelIdx}"]`)?.value.toLowerCase() || '';
+    filterRows(panelIdx, q, btn.dataset.filter);
+  });
+
+  function filterRows(panelIdx, q, filter) {
+    const panel = content.querySelector(`.tab-panel[data-panel-index="${panelIdx}"]`);
+    if (!panel) return;
+    panel.querySelectorAll('tbody tr').forEach(tr => {
+      const matchesQ = !q || tr.dataset.label.includes(q);
+      const matchesFilter = filter === 'all' || tr.dataset.status === filter;
+      tr.classList.toggle('hidden', !matchesQ || !matchesFilter);
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', render);
+</script>
+</body>
+</html>

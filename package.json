@@ -1,0 +1,17 @@
+{
+  "name": "matrix-view",
+  "version": "1.0.0",
+  "description": "CLI to generate interactive HTML feature matrices from structured JSON — designed for use with Claude Code skills",
+  "bin": {
+    "matrix-view": "./bin/matrix-view.js"
+  },
+  "scripts": {
+    "test": "node test/matrix-view.test.js"
+  },
+  "keywords": ["matrix", "feature-matrix", "claude", "migration", "documentation"],
+  "author": "nildiert",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
+}
