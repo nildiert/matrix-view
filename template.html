@@ -254,6 +254,40 @@
   .status-badge.review  { color: var(--review-dark);  background: var(--review-bg);  border-color: var(--review-border); }
   .status-badge.na      { color: var(--na-dark);      background: var(--na-bg);      border-color: var(--na-border); }
 
+  /* Setup code block */
+  .setup-code-wrap {
+    margin: 0 14px 10px calc(20px + 12px + 14px);
+    border: 1px solid #c7d2fe;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .setup-code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--primary);
+    font-size: .68rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    color: rgba(255,255,255,.7);
+  }
+  .setup-code-header span { display: flex; align-items: center; gap: 5px; }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 4px; font-size: .68rem; font-weight: 500;
+    background: rgba(255,255,255,.12); color: rgba(255,255,255,.8);
+    border: 1px solid rgba(255,255,255,.2); cursor: pointer;
+    transition: background .15s; font-family: var(--font);
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.22); }
+  .copy-btn.copied { background: #065f46; color: #6ee7b7; border-color: #065f46; }
+  .setup-code-body {
+    background: #1e1b4b;
+    padding: 12px 14px;
+    overflow-x: auto;
+  }
+  .setup-code-body pre {
+    margin: 0; font-family: var(--mono); font-size: .78rem;
+    color: #c7d2fe; line-height: 1.6; white-space: pre;
+  }
+
   /* How-to-test button */
   .how-test-btn {
     flex-shrink: 0; margin-top: 1px;
@@ -501,8 +535,10 @@ function buildSubPanel(sub, si, ti, active) {
   return panel;
 }
 
-const ICON_HOW  = svg(`<path fill-rule="evenodd" d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 5a1 1 0 112 0v4a1 1 0 11-2 0V5zm1 7a1.25 1.25 0 100-2.5A1.25 1.25 0 009 12z"/>`, 12);
-const ICON_PLAY = svg(`<path d="M3 2.5v11l10-5.5L3 2.5z"/>`, 11);
+const ICON_HOW   = svg(`<path fill-rule="evenodd" d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 5a1 1 0 112 0v4a1 1 0 11-2 0V5zm1 7a1.25 1.25 0 100-2.5A1.25 1.25 0 009 12z"/>`, 12);
+const ICON_PLAY  = svg(`<path d="M3 2.5v11l10-5.5L3 2.5z"/>`, 11);
+const ICON_CODE  = svg(`<path d="M5.03 3.47a.75.75 0 010 1.06L2.56 7l2.47 2.47a.75.75 0 11-1.06 1.06L.97 7.53a.75.75 0 010-1.06L3.97 3.47a.75.75 0 011.06 0zm5.94 0a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06L13.44 7l-2.47-2.47a.75.75 0 010-1.06zM8.787 2.03a.75.75 0 01.49.943l-3 9a.75.75 0 01-1.432-.454l3-9a.75.75 0 01.942-.489z"/>`, 12);
+const ICON_COPY  = svg(`<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>`, 12);
 
 function buildRow(item, pid) {
   const status = getStatus(item.id, item.status);
@@ -537,13 +573,43 @@ function buildRow(item, pid) {
   });
   wrap.appendChild(row);
 
-  if (item.how_to_test) {
+  if (item.how_to_test || item.setup_code) {
     const panel = el('div', 'how-test-panel');
     panel.dataset.id = item.id;
-    panel.innerHTML = `
-      <div class="how-test-panel-title">${ICON_PLAY} Cómo probar</div>
-      ${item.how_to_test}`;
+
+    let inner = `<div class="how-test-panel-title">${ICON_PLAY} Cómo probar</div>`;
+
+    if (item.setup_code) {
+      const escapedCode = item.setup_code
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      inner += `
+        <div class="setup-code-wrap" style="margin:0 0 10px 0">
+          <div class="setup-code-header">
+            <span>${ICON_CODE} Setup · Rails console</span>
+            <button class="copy-btn" data-code="${encodeURIComponent(item.setup_code)}">${ICON_COPY} Copiar</button>
+          </div>
+          <div class="setup-code-body"><pre>${escapedCode}</pre></div>
+        </div>`;
+    }
+
+    if (item.how_to_test) inner += item.how_to_test;
+
+    panel.innerHTML = inner;
     wrap.appendChild(panel);
+
+    // Copy button handler
+    panel.querySelector('.copy-btn')?.addEventListener('click', e => {
+      e.stopPropagation();
+      const code = decodeURIComponent(e.currentTarget.dataset.code);
+      navigator.clipboard?.writeText(code).then(() => {
+        e.currentTarget.classList.add('copied');
+        e.currentTarget.innerHTML = `${ICON_COPY} Copiado`;
+        setTimeout(() => {
+          e.currentTarget.classList.remove('copied');
+          e.currentTarget.innerHTML = `${ICON_COPY} Copiar`;
+        }, 2000);
+      });
+    });
 
     row.querySelector('.how-test-btn').addEventListener('click', e => {
       e.stopPropagation();

@@ -50,7 +50,8 @@ if (args[0] === '--schema') {
                     tech_name: "nombre_tecnico_opcional",
                     status: "pending | done | review | na",
                     notes: "Nota opcional explicativa",
-                    how_to_test: "Descripción humana de cómo probar esta funcionalidad (opcional). Admite HTML básico."
+                    setup_code: "# Código Ruby/Rails para construir el estado de prueba (opcional)\n# Se renderiza como bloque copiable antes de los pasos\nst <tenant>\nprocess = Talent::EvaluationProcessBuilder.new(...).call",
+                    how_to_test: "Pasos desde la perspectiva del usuario en la app (obligatorio). Admite HTML básico."
                   }
                 ]
               }
