@@ -28,25 +28,36 @@ if (args[0] === '--schema') {
     title: "Nombre descriptivo de la matriz",
     context: "migration | permissions | coverage | tabs | api",
     feature_flag: "nombre_del_flag (opcional)",
+    jira_ticket: "TL-1234 (opcional)",
     generated_at: "ISO 8601",
     source_url: "/ruta/de/la/vista (opcional)",
-    axes: {
-      x: ["Columna 1", "Columna 2"],
-      y_groups: [
-        {
-          name: "Nombre del grupo (ej: Campos, Acciones)",
-          rows: [
-            {
-              label: "Nombre legible (traducido)",
-              tech_name: "nombre_tecnico_opcional",
-              values: ["✅", "❌"],
-              status: "ok | missing | partial | new | unknown",
-              notes: "Nota opcional explicativa"
-            }
-          ]
-        }
-      ]
-    }
+    tabs: [
+      {
+        id: "with_ff",
+        name: "Con FF activo",
+        subtabs: [
+          {
+            id: "participantes",
+            name: "Participantes",
+            description: "Descripción opcional del subtab",
+            sections: [
+              {
+                name: "Campos",
+                items: [
+                  {
+                    id: "unique-item-id",
+                    label: "Nombre legible (traducido)",
+                    tech_name: "nombre_tecnico_opcional",
+                    status: "pending | done | review | na",
+                    notes: "Nota opcional explicativa"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   };
   console.log(JSON.stringify(schema, null, 2));
   process.exit(0);

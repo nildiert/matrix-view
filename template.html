@@ -6,296 +6,511 @@
 <title>matrix-view</title>
 <style>
   :root {
-    --ok: #16a34a; --ok-bg: #f0fdf4; --ok-border: #bbf7d0;
-    --missing: #dc2626; --missing-bg: #fef2f2; --missing-border: #fecaca;
-    --partial: #d97706; --partial-bg: #fffbeb; --partial-border: #fde68a;
-    --new: #2563eb; --new-bg: #eff6ff; --new-border: #bfdbfe;
-    --unknown: #6b7280; --unknown-bg: #f9fafb; --unknown-border: #e5e7eb;
-    --tab-active: #1e293b; --tab-inactive: #64748b;
-    --surface: #fff; --bg: #f8fafc; --border: #e2e8f0;
-    --text: #1e293b; --text-muted: #64748b;
+    --done: #16a34a; --done-bg: #f0fdf4; --done-border: #bbf7d0;
+    --pending: #64748b; --pending-bg: #f8fafc; --pending-border: #e2e8f0;
+    --review: #d97706; --review-bg: #fffbeb; --review-border: #fde68a;
+    --na: #94a3b8; --na-bg: #f1f5f9; --na-border: #e2e8f0;
+    --surface: #fff; --bg: #f1f5f9; --border: #e2e8f0;
+    --text: #1e293b; --text-muted: #64748b; --text-faint: #94a3b8;
+    --primary: #1e293b; --primary-light: #334155;
+    --accent: #3b82f6; --accent-bg: #eff6ff;
     --radius: 8px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  .header { background: var(--tab-active); color: #fff; padding: 24px 32px; }
-  .header h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 6px; }
-  .header-meta { display: flex; gap: 16px; flex-wrap: wrap; }
-  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
-           background: rgba(255,255,255,0.12); padding: 3px 10px; border-radius: 99px; }
+  /* ── Header ── */
+  .header { background: var(--primary); color: #fff; padding: 20px 28px 0; }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 16px; }
+  .header h1 { font-size: 1.15rem; font-weight: 600; }
+  .header-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .badge { font-size: 0.72rem; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+  .jira-link { font-size: 0.8rem; color: #93c5fd; text-decoration: none; font-weight: 500; }
+  .jira-link:hover { color: #bfdbfe; }
 
-  .summary { display: flex; gap: 12px; padding: 20px 32px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
-  .stat { display: flex; align-items: center; gap: 8px; padding: 8px 14px;
-          border-radius: var(--radius); font-size: 0.85rem; font-weight: 500; border: 1px solid; }
-  .stat.ok    { color: var(--ok);      background: var(--ok-bg);      border-color: var(--ok-border); }
-  .stat.missing { color: var(--missing); background: var(--missing-bg); border-color: var(--missing-border); }
-  .stat.partial { color: var(--partial); background: var(--partial-bg); border-color: var(--partial-border); }
-  .stat.new   { color: var(--new);     background: var(--new-bg);     border-color: var(--new-border); }
-  .stat.unknown { color: var(--unknown); background: var(--unknown-bg); border-color: var(--unknown-border); }
-  .stat-count { font-size: 1.1rem; font-weight: 700; }
+  /* ── Summary bar ── */
+  .summary { display: flex; gap: 10px; padding: 12px 28px; flex-wrap: wrap;
+             background: var(--primary-light); border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .stat { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+          border-radius: 99px; font-size: 0.8rem; font-weight: 600; color: #fff; cursor: pointer; transition: opacity .15s; }
+  .stat:hover { opacity: 0.8; }
+  .stat.done    { background: var(--done); }
+  .stat.pending { background: var(--pending); }
+  .stat.review  { background: var(--review); }
+  .stat.na      { background: var(--na); }
+  .stat-n { font-size: 1rem; }
 
-  .tabs-nav { display: flex; gap: 0; padding: 0 32px; background: var(--surface);
-              border-bottom: 1px solid var(--border); overflow-x: auto; }
-  .tab-btn { padding: 12px 18px; font-size: 0.875rem; font-weight: 500; cursor: pointer;
-             background: none; border: none; border-bottom: 2px solid transparent;
-             color: var(--tab-inactive); white-space: nowrap; transition: all 0.15s; }
-  .tab-btn:hover { color: var(--tab-active); }
-  .tab-btn.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
-  .tab-btn .tab-counts { display: inline-flex; gap: 4px; margin-left: 8px; }
-  .tab-btn .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-  .dot.ok { background: var(--ok); }
-  .dot.missing { background: var(--missing); }
-  .dot.partial { background: var(--partial); }
-  .dot.new { background: var(--new); }
-  .dot.unknown { background: var(--unknown); }
+  /* ── Top-level tabs (FF state) ── */
+  .top-tabs-nav { display: flex; gap: 0; padding: 0 28px; background: var(--primary);
+                  border-bottom: 1px solid rgba(255,255,255,0.12); overflow-x: auto; }
+  .top-tab-btn { padding: 10px 16px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
+                 background: none; border: none; border-bottom: 2px solid transparent;
+                 color: rgba(255,255,255,0.6); white-space: nowrap; transition: all 0.15s; }
+  .top-tab-btn:hover { color: #fff; }
+  .top-tab-btn.active { color: #fff; border-bottom-color: #60a5fa; }
 
-  .content { padding: 24px 32px; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+  /* ── Sub-tabs (Participantes / Evaluadores) ── */
+  .subtabs-bar { display: flex; gap: 0; padding: 0 28px; background: var(--surface);
+                 border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .subtab-btn { padding: 10px 16px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
+                background: none; border: none; border-bottom: 2px solid transparent;
+                color: var(--text-muted); white-space: nowrap; transition: all 0.15s; }
+  .subtab-btn:hover { color: var(--text); }
+  .subtab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .subtab-btn .mini-stats { display: inline-flex; gap: 3px; margin-left: 6px; }
+  .mini-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .mini-dot.done { background: var(--done); }
+  .mini-dot.pending { background: var(--pending); }
+  .mini-dot.review { background: var(--review); }
 
-  .toolbar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  /* ── Content ── */
+  .content { padding: 20px 28px; }
+  .top-tab-panel { display: none; }
+  .top-tab-panel.active { display: block; }
+  .subtab-panel { display: none; }
+  .subtab-panel.active { display: block; }
+
+  /* ── Toolbar ── */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
   .search-box { padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius);
-                font-size: 0.875rem; width: 240px; outline: none; }
-  .search-box:focus { border-color: var(--tab-active); }
-  .filter-btns { display: flex; gap: 6px; }
-  .filter-btn { padding: 5px 12px; font-size: 0.8rem; border-radius: 99px; cursor: pointer;
-                border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
-                transition: all 0.15s; }
-  .filter-btn:hover, .filter-btn.active { background: var(--tab-active); color: #fff; border-color: var(--tab-active); }
+                font-size: 0.85rem; width: 220px; outline: none; background: var(--surface); }
+  .search-box:focus { border-color: var(--accent); }
+  .filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .pill { padding: 4px 11px; font-size: 0.78rem; border-radius: 99px; cursor: pointer;
+          border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); transition: all .15s; }
+  .pill:hover { border-color: var(--primary); color: var(--primary); }
+  .pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-  .matrix-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; background: var(--surface);
-                  border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .matrix-table th { background: var(--tab-active); color: #fff; padding: 10px 16px;
-                     text-align: left; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.03em; white-space: nowrap; }
-  .matrix-table th:first-child { width: 30%; min-width: 200px; }
-  .matrix-table th:not(:first-child):not(:last-child) { text-align: center; }
-  .matrix-table th:last-child { text-align: center; width: 80px; }
+  /* ── Section ── */
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+                   color: var(--text-faint); padding: 0 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
 
-  .matrix-table td { padding: 9px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .matrix-table tr:last-child td { border-bottom: none; }
-  .matrix-table tr:hover td { background: var(--bg); }
-  .matrix-table td:not(:first-child) { text-align: center; }
+  /* ── Todo items ── */
+  .todo-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px;
+               border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s;
+               border-radius: 0; }
+  .todo-item:first-of-type { border-radius: var(--radius) var(--radius) 0 0; }
+  .todo-item:last-of-type { border-bottom: none; border-radius: 0 0 var(--radius) var(--radius); }
+  .todo-item:only-of-type { border-radius: var(--radius); }
+  .todo-item:hover { background: var(--bg); }
+  .todo-item.done    { background: var(--done-bg); }
+  .todo-item.review  { background: var(--review-bg); }
+  .todo-item.na      { background: var(--na-bg); opacity: 0.65; }
+  .todo-item.na .item-label { text-decoration: line-through; color: var(--text-muted); }
 
-  .row-label { display: flex; flex-direction: column; gap: 2px; }
-  .row-label .label { font-weight: 500; }
-  .row-label .tech { font-size: 0.75rem; color: var(--text-muted); font-family: 'SF Mono', monospace; }
-  .row-label .note { font-size: 0.75rem; color: var(--partial); margin-top: 2px; }
+  .status-toggle { flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px; border: 2px solid;
+                   display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+                   margin-top: 1px; transition: all .15s; user-select: none; }
+  .status-toggle.done    { background: var(--done);    border-color: var(--done);    color: #fff; }
+  .status-toggle.pending { background: var(--surface); border-color: var(--pending-border); color: transparent; }
+  .status-toggle.review  { background: var(--review-bg); border-color: var(--review); color: var(--review); }
+  .status-toggle.na      { background: var(--na-bg);   border-color: var(--na-border); color: var(--na); }
 
-  .status-chip { display: inline-flex; align-items: center; justify-content: center;
-                 width: 28px; height: 28px; border-radius: 50%; font-size: 1rem;
-                 border: 1px solid transparent; }
-  .status-chip.ok      { background: var(--ok-bg);      border-color: var(--ok-border); }
-  .status-chip.missing { background: var(--missing-bg); border-color: var(--missing-border); }
-  .status-chip.partial { background: var(--partial-bg); border-color: var(--partial-border); }
-  .status-chip.new     { background: var(--new-bg);     border-color: var(--new-border); }
-  .status-chip.unknown { background: var(--unknown-bg); border-color: var(--unknown-border); }
+  .item-body { flex: 1; min-width: 0; }
+  .item-label { font-size: 0.875rem; font-weight: 500; line-height: 1.4; }
+  .item-tech { font-size: 0.75rem; font-family: 'SF Mono', 'Cascadia Mono', monospace;
+               color: var(--text-muted); margin-top: 2px; }
+  .item-note { font-size: 0.75rem; color: var(--review); margin-top: 3px; }
+  .item-note.info { color: var(--accent); }
 
-  .overall-status { display: inline-block; padding: 3px 10px; border-radius: 99px;
-                    font-size: 0.75rem; font-weight: 600; }
-  .overall-status.ok      { color: var(--ok);      background: var(--ok-bg);      border: 1px solid var(--ok-border); }
-  .overall-status.missing { color: var(--missing); background: var(--missing-bg); border: 1px solid var(--missing-border); }
-  .overall-status.partial { color: var(--partial); background: var(--partial-bg); border: 1px solid var(--partial-border); }
-  .overall-status.new     { color: var(--new);     background: var(--new-bg);     border: 1px solid var(--new-border); }
-  .overall-status.unknown { color: var(--unknown); background: var(--unknown-bg); border: 1px solid var(--unknown-border); }
+  .status-label { flex-shrink: 0; font-size: 0.72rem; font-weight: 600; padding: 2px 8px;
+                  border-radius: 99px; border: 1px solid; white-space: nowrap; margin-top: 2px; cursor: pointer; }
+  .status-label.done    { color: var(--done);    background: var(--done-bg);    border-color: var(--done-border); }
+  .status-label.pending { color: var(--pending); background: var(--pending-bg); border-color: var(--pending-border); }
+  .status-label.review  { color: var(--review);  background: var(--review-bg);  border-color: var(--review-border); }
+  .status-label.na      { color: var(--na);      background: var(--na-bg);      border-color: var(--na-border); }
 
-  .flag-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-                 background: var(--new-bg); border: 1px solid var(--new-border);
-                 border-radius: var(--radius); margin-bottom: 20px; font-size: 0.85rem; }
-  .flag-banner code { font-family: 'SF Mono', monospace; font-size: 0.8rem; background: var(--new-border);
-                      padding: 2px 6px; border-radius: 4px; }
+  .status-labels { done: "✓ Listo", pending: "Pendiente", review: "Revisar", na: "N/A" }
+
+  /* ── Progress bar ── */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .progress-bar { flex: 1; height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--done); border-radius: 99px; transition: width .3s; }
+  .progress-text { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 28px 4px; font-size: 0.75rem; color: var(--text-muted); }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+
+  /* ── FF banner ── */
+  .ff-banner { display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+               background: var(--accent-bg); border: 1px solid #bfdbfe;
+               border-radius: var(--radius); margin-bottom: 14px; font-size: 0.82rem; color: #1d4ed8; }
+  .ff-banner code { font-family: 'SF Mono', monospace; font-size: 0.78rem; background: #dbeafe;
+                    padding: 1px 6px; border-radius: 4px; }
 
   .hidden { display: none !important; }
-
-  @media (max-width: 768px) {
-    .header, .summary, .tabs-nav, .content { padding-left: 16px; padding-right: 16px; }
-    .search-box { width: 100%; }
-  }
 </style>
 </head>
 <body>
 <script>
 /*__MATRIX_DATA__*/
 
-const STATUS_ICONS = { ok: '✅', missing: '❌', partial: '⚠️', new: '🆕', unknown: '❓' };
-const STATUS_LABELS = { ok: 'Completo', missing: 'Faltante', partial: 'Parcial', new: 'Nuevo', unknown: 'Sin determinar' };
+const STATUS_CYCLE = ['pending', 'done', 'review', 'na'];
+const STATUS_ICONS = { done: '✓', pending: '', review: '!', na: '—' };
+const STATUS_LABELS_ES = { done: 'Listo', pending: 'Pendiente', review: 'Revisar', na: 'N/A' };
 
-function computeOverallStatus(values, statuses) {
-  if (statuses && statuses.length > 0) return statuses[0];
-  const icons = values || [];
-  if (icons.some(v => v === '❌')) return 'missing';
-  if (icons.some(v => v === '⚠️')) return 'partial';
-  if (icons.some(v => v === '🆕')) return 'new';
-  if (icons.some(v => v === '❓')) return 'unknown';
-  return 'ok';
+// ── Persistence ──────────────────────────────────────────────────────────────
+
+function storageKey() {
+  return `matrix-view::${MATRIX_DATA.title}`;
 }
 
-function countStatuses(group) {
-  const counts = { ok: 0, missing: 0, partial: 0, new: 0, unknown: 0 };
-  (group.rows || []).forEach(row => {
-    const s = row.status || computeOverallStatus(row.values);
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(storageKey()) || '{}'); } catch { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem(storageKey(), JSON.stringify(state));
+}
+
+function getItemStatus(id, defaultStatus) {
+  return loadState()[id] || defaultStatus || 'pending';
+}
+
+function setItemStatus(id, status) {
+  const state = loadState();
+  state[id] = status;
+  saveState(state);
+}
+
+// ── Counting ──────────────────────────────────────────────────────────────────
+
+function countSubtab(sections) {
+  const counts = { done: 0, pending: 0, review: 0, na: 0 };
+  sections.forEach(sec => (sec.items || []).forEach(item => {
+    const s = getItemStatus(item.id, item.status);
     counts[s] = (counts[s] || 0) + 1;
-  });
+  }));
   return counts;
 }
+
+function countAll() {
+  const counts = { done: 0, pending: 0, review: 0, na: 0 };
+  (MATRIX_DATA.tabs || []).forEach(tab =>
+    (tab.subtabs || []).forEach(sub =>
+      (sub.sections || []).forEach(sec =>
+        (sec.items || []).forEach(item => {
+          const s = getItemStatus(item.id, item.status);
+          counts[s] = (counts[s] || 0) + 1;
+        }))));
+  return counts;
+}
+
+// ── Build UI ──────────────────────────────────────────────────────────────────
 
 function buildHeader() {
   const m = MATRIX_DATA;
   const el = document.createElement('div');
   el.className = 'header';
   const meta = [];
-  if (m.context) meta.push(`<span class="badge">📋 ${m.context}</span>`);
+  if (m.context)     meta.push(`<span class="badge">📋 ${m.context}</span>`);
+  if (m.source_url)  meta.push(`<span class="badge">🔗 ${m.source_url}</span>`);
   if (m.generated_at) meta.push(`<span class="badge">🕐 ${new Date(m.generated_at).toLocaleString('es')}</span>`);
-  if (m.source_url) meta.push(`<span class="badge">🔗 ${m.source_url}</span>`);
-  el.innerHTML = `<h1>${m.title || 'Matriz de funcionalidades'}</h1><div class="header-meta">${meta.join('')}</div>`;
+  const jira = m.jira_ticket
+    ? `<a class="jira-link" href="https://buk.atlassian.net/browse/${m.jira_ticket}" target="_blank">🎫 ${m.jira_ticket}</a>`
+    : '';
+  el.innerHTML = `
+    <div class="header-top">
+      <div>
+        <h1>${m.title || 'matrix-view'}</h1>
+        <div class="header-meta">${meta.join('')}</div>
+      </div>
+      ${jira}
+    </div>`;
   return el;
 }
 
-function buildSummary(allGroups) {
-  const totals = { ok: 0, missing: 0, partial: 0, new: 0, unknown: 0 };
-  allGroups.forEach(g => {
-    const c = countStatuses(g);
-    Object.keys(totals).forEach(k => totals[k] += c[k]);
-  });
+function buildSummaryBar() {
   const el = document.createElement('div');
   el.className = 'summary';
-  Object.entries(totals).filter(([, v]) => v > 0).forEach(([status, count]) => {
-    el.innerHTML += `<div class="stat ${status}"><span class="stat-count">${count}</span>${STATUS_ICONS[status]} ${STATUS_LABELS[status]}</div>`;
-  });
+  el.id = 'global-summary';
+  refreshSummary(el);
   return el;
 }
 
-function buildTabsNav(groups, activeIndex) {
+function refreshSummary(el) {
+  const counts = countAll();
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const pct = total ? Math.round((counts.done / total) * 100) : 0;
+  el.innerHTML = `
+    <div class="progress-wrap" style="flex:1;min-width:180px">
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <span class="progress-text">${counts.done}/${total} listos (${pct}%)</span>
+    </div>
+    ${Object.entries(counts).filter(([,v])=>v>0).map(([s,n])=>
+      `<span class="stat ${s}" data-filter-status="${s}">${STATUS_LABELS_ES[s]} <span class="stat-n">${n}</span></span>`
+    ).join('')}`;
+}
+
+function buildTopTabsNav(tabs, activeIdx) {
   const nav = document.createElement('div');
-  nav.className = 'tabs-nav';
-  groups.forEach((g, i) => {
-    const counts = countStatuses(g);
-    const dots = Object.entries(counts).filter(([,v]) => v > 0)
-      .map(([s, v]) => `<span class="dot ${s}" title="${v} ${STATUS_LABELS[s]}"></span>`).join('');
+  nav.className = 'top-tabs-nav';
+  tabs.forEach((tab, i) => {
     const btn = document.createElement('button');
-    btn.className = 'tab-btn' + (i === activeIndex ? ' active' : '');
-    btn.innerHTML = `${g.name} <span class="tab-counts">${dots}</span>`;
-    btn.dataset.tabIndex = i;
+    btn.className = 'top-tab-btn' + (i === activeIdx ? ' active' : '');
+    btn.dataset.topTabIdx = i;
+    btn.textContent = tab.name;
     nav.appendChild(btn);
   });
   return nav;
 }
 
-function buildPanel(group, panelIndex, xAxes, isActive) {
-  const panel = document.createElement('div');
-  panel.className = 'tab-panel' + (isActive ? ' active' : '');
-  panel.dataset.panelIndex = panelIndex;
+function buildSubtabsBar(subtabs, activeIdx, topTabIdx) {
+  const bar = document.createElement('div');
+  bar.className = 'subtabs-bar';
+  bar.dataset.topTabIdx = topTabIdx;
+  subtabs.forEach((sub, i) => {
+    const counts = countSubtab(sub.sections || []);
+    const dots = ['done','pending','review'].filter(s => counts[s] > 0)
+      .map(s => `<span class="mini-dot ${s}" title="${counts[s]} ${STATUS_LABELS_ES[s]}"></span>`).join('');
+    const btn = document.createElement('button');
+    btn.className = 'subtab-btn' + (i === activeIdx ? ' active' : '');
+    btn.dataset.subtabIdx = i;
+    btn.dataset.topTabIdx = topTabIdx;
+    btn.innerHTML = `${sub.name} <span class="mini-stats">${dots}</span>`;
+    bar.appendChild(btn);
+  });
+  return bar;
+}
 
+function buildSubtabPanel(sub, subtabIdx, topTabIdx, isActive) {
+  const panel = document.createElement('div');
+  panel.className = 'subtab-panel' + (isActive ? ' active' : '');
+  panel.dataset.subtabIdx = subtabIdx;
+  panel.dataset.topTabIdx = topTabIdx;
+
+  const panelId = `${topTabIdx}-${subtabIdx}`;
+
+  // FF banner
+  if (MATRIX_DATA.feature_flag) {
+    panel.innerHTML = `<div class="ff-banner">🚩 Feature flag: <code>${MATRIX_DATA.feature_flag}</code></div>`;
+  }
+  if (sub.description) {
+    const d = document.createElement('p');
+    d.style.cssText = 'font-size:.82rem;color:var(--text-muted);margin-bottom:12px';
+    d.textContent = sub.description;
+    panel.appendChild(d);
+  }
+
+  // Toolbar
   const toolbar = document.createElement('div');
   toolbar.className = 'toolbar';
-  toolbar.innerHTML = `<input class="search-box" type="text" placeholder="Buscar funcionalidad..." data-panel="${panelIndex}">
-    <div class="filter-btns">
-      <button class="filter-btn active" data-filter="all" data-panel="${panelIndex}">Todos</button>
-      ${Object.entries(STATUS_ICONS).map(([s, icon]) => `<button class="filter-btn" data-filter="${s}" data-panel="${panelIndex}">${icon} ${STATUS_LABELS[s]}</button>`).join('')}
+  toolbar.innerHTML = `
+    <input class="search-box" type="text" placeholder="Buscar funcionalidad..." data-panel="${panelId}">
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all" data-panel="${panelId}">Todos</button>
+      <button class="pill" data-filter="pending" data-panel="${panelId}">⬜ Pendiente</button>
+      <button class="pill" data-filter="review"  data-panel="${panelId}">⚠️ Revisar</button>
+      <button class="pill" data-filter="done"    data-panel="${panelId}">✅ Listo</button>
+      <button class="pill" data-filter="na"      data-panel="${panelId}">— N/A</button>
     </div>`;
   panel.appendChild(toolbar);
 
-  const table = document.createElement('table');
-  table.className = 'matrix-table';
-  table.innerHTML = `<thead><tr>
-    <th>Funcionalidad</th>
-    ${xAxes.map(x => `<th>${x}</th>`).join('')}
-    <th>Estado</th>
-  </tr></thead>`;
+  // Sections
+  (sub.sections || []).forEach(sec => {
+    const secEl = document.createElement('div');
+    secEl.className = 'section';
+    secEl.innerHTML = `<div class="section-title">${sec.name}</div>`;
 
-  const tbody = document.createElement('tbody');
-  (group.rows || []).forEach(row => {
-    const status = row.status || computeOverallStatus(row.values);
-    const tr = document.createElement('tr');
-    tr.dataset.status = status;
-    tr.dataset.label = (row.label || '').toLowerCase();
+    (sec.items || []).forEach(item => {
+      const status = getItemStatus(item.id, item.status);
+      const row = document.createElement('div');
+      row.className = `todo-item ${status}`;
+      row.dataset.itemId = item.id;
+      row.dataset.status = status;
+      row.dataset.label = (item.label || '').toLowerCase();
+      row.dataset.panel = panelId;
 
-    const labelHtml = `<div class="row-label">
-      <span class="label">${row.label || ''}</span>
-      ${row.tech_name ? `<span class="tech">${row.tech_name}</span>` : ''}
-      ${row.notes ? `<span class="note">${row.notes}</span>` : ''}
-    </div>`;
+      row.innerHTML = `
+        <div class="status-toggle ${status}">${STATUS_ICONS[status]}</div>
+        <div class="item-body">
+          <div class="item-label">${item.label || ''}</div>
+          ${item.tech_name ? `<div class="item-tech">${item.tech_name}</div>` : ''}
+          ${item.notes    ? `<div class="item-note">${item.notes}</div>` : ''}
+        </div>
+        <div class="status-label ${status}">${STATUS_LABELS_ES[status]}</div>`;
 
-    const valueCells = (row.values || xAxes.map(() => '❓'))
-      .map(v => {
-        const s = v === '✅' ? 'ok' : v === '❌' ? 'missing' : v === '⚠️' ? 'partial' : v === '🆕' ? 'new' : 'unknown';
-        return `<td><span class="status-chip ${s}" title="${v}">${v}</span></td>`;
-      }).join('');
+      row.addEventListener('click', () => cycleStatus(row, panelId));
+      secEl.appendChild(row);
+    });
 
-    tr.innerHTML = `<td>${labelHtml}</td>${valueCells}
-      <td><span class="overall-status ${status}">${STATUS_ICONS[status]} ${STATUS_LABELS[status]}</span></td>`;
-    tbody.appendChild(tr);
+    panel.appendChild(secEl);
   });
 
-  table.appendChild(tbody);
-  panel.appendChild(table);
   return panel;
 }
 
+function cycleStatus(row, panelId) {
+  const id = row.dataset.itemId;
+  const current = row.dataset.status;
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length];
+
+  setItemStatus(id, next);
+  row.dataset.status = next;
+  row.className = `todo-item ${next}`;
+
+  const toggle = row.querySelector('.status-toggle');
+  toggle.className = `status-toggle ${next}`;
+  toggle.textContent = STATUS_ICONS[next];
+
+  const label = row.querySelector('.status-label');
+  label.className = `status-label ${next}`;
+  label.textContent = STATUS_LABELS_ES[next];
+
+  if (next === 'na') row.querySelector('.item-label').style.textDecoration = 'line-through';
+  else row.querySelector('.item-label').style.textDecoration = '';
+
+  refreshSummary(document.getElementById('global-summary'));
+  refreshSubtabDots();
+
+  applyFilters(panelId);
+}
+
+function refreshSubtabDots() {
+  document.querySelectorAll('.subtab-btn').forEach(btn => {
+    const topIdx = parseInt(btn.dataset.topTabIdx);
+    const subIdx = parseInt(btn.dataset.subtabIdx);
+    const sub = MATRIX_DATA.tabs?.[topIdx]?.subtabs?.[subIdx];
+    if (!sub) return;
+    const counts = countSubtab(sub.sections || []);
+    const dots = ['done','pending','review'].filter(s => counts[s] > 0)
+      .map(s => `<span class="mini-dot ${s}"></span>`).join('');
+    btn.querySelector('.mini-stats').innerHTML = dots;
+  });
+}
+
+function applyFilters(panelId) {
+  const q = document.querySelector(`.search-box[data-panel="${panelId}"]`)?.value.toLowerCase() || '';
+  const activeFilter = document.querySelector(`.pill.active[data-panel="${panelId}"]`)?.dataset.filter || 'all';
+  document.querySelectorAll(`.todo-item[data-panel="${panelId}"]`).forEach(row => {
+    const matchQ = !q || row.dataset.label.includes(q);
+    const matchF = activeFilter === 'all' || row.dataset.status === activeFilter;
+    row.classList.toggle('hidden', !matchQ || !matchF);
+  });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
 function render() {
   const m = MATRIX_DATA;
-  const groups = m.axes?.y_groups || [];
-  const xAxes = m.axes?.x || [];
+  const tabs = m.tabs || [];
 
   document.title = m.title || 'matrix-view';
   document.body.appendChild(buildHeader());
-  document.body.appendChild(buildSummary(groups));
+  const summaryEl = buildSummaryBar();
+  document.body.appendChild(summaryEl);
 
-  if (m.feature_flag) {
-    const banner = document.createElement('div');
-    banner.innerHTML = `<div style="padding:0 32px;margin-top:16px"><div class="flag-banner">🚩 Feature Flag activo: <code>${m.feature_flag}</code></div></div>`;
-    document.body.appendChild(banner);
-  }
+  // Legend
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  legend.innerHTML = `
+    <span>Click en fila para cambiar estado</span>
+    <span><b>Ciclo:</b> Pendiente → Listo → Revisar → N/A</span>
+    <span>Estado guardado en browser (localStorage)</span>`;
+  document.body.appendChild(legend);
 
-  const nav = buildTabsNav(groups, 0);
-  document.body.appendChild(nav);
+  const topNav = buildTopTabsNav(tabs, 0);
+  document.body.appendChild(topNav);
 
   const content = document.createElement('div');
-  content.className = 'content';
-  groups.forEach((g, i) => content.appendChild(buildPanel(g, i, xAxes, i === 0)));
+
+  tabs.forEach((tab, topIdx) => {
+    const topPanel = document.createElement('div');
+    topPanel.className = 'top-tab-panel' + (topIdx === 0 ? ' active' : '');
+    topPanel.dataset.topTabIdx = topIdx;
+
+    const subtabs = tab.subtabs || [];
+    const subBar = buildSubtabsBar(subtabs, 0, topIdx);
+    topPanel.appendChild(subBar);
+
+    const subContent = document.createElement('div');
+    subContent.className = 'content';
+
+    subtabs.forEach((sub, subIdx) => {
+      subContent.appendChild(buildSubtabPanel(sub, subIdx, topIdx, subIdx === 0));
+    });
+
+    topPanel.appendChild(subContent);
+    content.appendChild(topPanel);
+  });
+
   document.body.appendChild(content);
 
-  // Tab navigation
-  nav.addEventListener('click', e => {
-    const btn = e.target.closest('.tab-btn');
+  // ── Events ────────────────────────────────────────────────────────────────
+
+  // Top tabs
+  topNav.addEventListener('click', e => {
+    const btn = e.target.closest('.top-tab-btn');
     if (!btn) return;
-    const idx = parseInt(btn.dataset.tabIndex);
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    const idx = parseInt(btn.dataset.topTabIdx);
+    document.querySelectorAll('.top-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.top-tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelector(`.tab-panel[data-panel-index="${idx}"]`)?.classList.add('active');
+    document.querySelector(`.top-tab-panel[data-top-tab-idx="${idx}"]`)?.classList.add('active');
   });
 
-  // Fix: use dataset correctly
-  content.querySelectorAll('.tab-panel').forEach((p, i) => p.dataset.panelIndex = i);
+  // Subtabs (delegated)
+  content.addEventListener('click', e => {
+    const btn = e.target.closest('.subtab-btn');
+    if (!btn) return;
+    const topIdx = btn.dataset.topTabIdx;
+    const subIdx = parseInt(btn.dataset.subtabIdx);
+    content.querySelectorAll(`.subtab-btn[data-top-tab-idx="${topIdx}"]`).forEach(b => b.classList.remove('active'));
+    content.querySelectorAll(`.subtab-panel[data-top-tab-idx="${topIdx}"]`).forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    content.querySelector(`.subtab-panel[data-top-tab-idx="${topIdx}"][data-subtab-idx="${subIdx}"]`)?.classList.add('active');
+  });
 
-  // Search + filter
+  // Search
   content.addEventListener('input', e => {
     if (!e.target.classList.contains('search-box')) return;
-    const panelIdx = e.target.dataset.panel;
-    const q = e.target.value.toLowerCase();
-    filterRows(panelIdx, q, content.querySelector(`.filter-btn.active[data-panel="${panelIdx}"]`)?.dataset.filter || 'all');
+    applyFilters(e.target.dataset.panel);
   });
 
+  // Filter pills
   content.addEventListener('click', e => {
-    const btn = e.target.closest('.filter-btn');
-    if (!btn) return;
-    const panelIdx = btn.dataset.panel;
-    content.querySelectorAll(`.filter-btn[data-panel="${panelIdx}"]`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const q = content.querySelector(`.search-box[data-panel="${panelIdx}"]`)?.value.toLowerCase() || '';
-    filterRows(panelIdx, q, btn.dataset.filter);
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    const panelId = pill.dataset.panel;
+    content.querySelectorAll(`.pill[data-panel="${panelId}"]`).forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    applyFilters(panelId);
   });
 
-  function filterRows(panelIdx, q, filter) {
-    const panel = content.querySelector(`.tab-panel[data-panel-index="${panelIdx}"]`);
-    if (!panel) return;
-    panel.querySelectorAll('tbody tr').forEach(tr => {
-      const matchesQ = !q || tr.dataset.label.includes(q);
-      const matchesFilter = filter === 'all' || tr.dataset.status === filter;
-      tr.classList.toggle('hidden', !matchesQ || !matchesFilter);
+  // Summary bar filter
+  summaryEl.addEventListener('click', e => {
+    const stat = e.target.closest('.stat[data-filter-status]');
+    if (!stat) return;
+    const filterStatus = stat.dataset.filterStatus;
+    // Apply to all visible subtab panels
+    document.querySelectorAll('.subtab-panel.active').forEach(panel => {
+      const panelId = panel.dataset.topTabIdx + '-' + panel.dataset.subtabIdx;
+      const pill = panel.querySelector(`.pill[data-filter="${filterStatus}"]`);
+      if (pill) {
+        panel.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        applyFilters(panelId);
+      }
     });
-  }
+  });
+
+  // Fix dataset for top panels (hyphenated vs camelCase)
+  document.querySelectorAll('.top-tab-panel').forEach(p => {
+    p.style.display = p.classList.contains('active') ? 'block' : 'none';
+  });
+  topNav.addEventListener('click', e => {
+    const btn = e.target.closest('.top-tab-btn');
+    if (!btn) return;
+    document.querySelectorAll('.top-tab-panel').forEach((p, i) => {
+      p.style.display = parseInt(btn.dataset.topTabIdx) === i ? 'block' : 'none';
+    });
+  });
+  // Initial display
+  document.querySelectorAll('.top-tab-panel').forEach((p, i) => {
+    p.style.display = i === 0 ? 'block' : 'none';
+  });
 }
 
 document.addEventListener('DOMContentLoaded', render);
