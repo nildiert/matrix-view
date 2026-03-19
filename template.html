@@ -736,9 +736,164 @@
     .search-wrap { width: 100%; }
     .search-box { width: 100%; }
   }
+
+  /* ── List context (tars list) ──────────────────────────────────────────── */
+  .list-wrap { padding: 0 32px 48px; max-width: 1100px; margin: 0 auto; }
+  /* Tab nav */
+  .list-tab-nav {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 0; padding-top: 20px;
+  }
+  .list-tab-btn {
+    font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; padding: 8px 18px; border: none; background: transparent;
+    color: var(--text-sm); cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: color .15s, border-color .15s;
+  }
+  .list-tab-btn:hover { color: var(--text); }
+  .list-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .list-tab-panel.hidden { display: none; }
+  /* Toolbar */
+  .list-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 8px; min-height: 36px; gap: 12px; }
+  .list-toolbar-left { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .list-toolbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  /* Author filter pills */
+  .list-author-filter { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .list-author-pill {
+    font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .04em;
+    padding: 3px 10px; border: 1px solid var(--border); border-radius: 20px;
+    background: transparent; color: var(--text-sm); cursor: pointer; transition: all .15s;
+  }
+  .list-author-pill:hover { border-color: var(--primary); color: var(--primary); }
+  .list-author-pill.active { background: var(--primary-pale); border-color: var(--primary); color: var(--primary); }
+  .list-filter-label { font-family: var(--mono); font-size: 10px; color: var(--text-sm); opacity: .5; flex-shrink: 0; }
+  .list-show-archived-btn {
+    font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .06em;
+    padding: 4px 12px; border: 1px solid var(--border); border-radius: 20px;
+    background: transparent; color: var(--text-sm); cursor: pointer; transition: all .15s;
+  }
+  .list-show-archived-btn:hover { border-color: var(--text-sm); color: var(--text); }
+  /* Rows list */
+  .list-rows { width: 100%; }
+  .list-col-headers {
+    display: grid;
+    grid-template-columns: 60px 1fr 110px 70px 80px 120px 36px 70px;
+    gap: 0 12px; padding: 6px 8px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text-sm);
+    border-bottom: 1px solid var(--border); margin-bottom: 2px;
+  }
+  .list-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 110px 70px 80px 120px 36px 70px;
+    gap: 0 12px; padding: 9px 8px;
+    border-bottom: 1px solid var(--border);
+    align-items: center; transition: background .12s; cursor: default;
+  }
+  /* Terminal copy button */
+  .list-col-terminal { display: flex; align-items: center; justify-content: center; }
+  .list-terminal-btn {
+    width: 28px; height: 26px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface-2); color: var(--text-sm);
+    cursor: pointer; transition: all .15s; flex-shrink: 0; padding: 0;
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: -.5px;
+  }
+  .list-terminal-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-pale); }
+  .list-terminal-btn.copied { border-color: var(--done-border); color: var(--done-dark); background: var(--done-bg); }
+  .list-terminal-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .list-row:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
+  .list-row.archived { opacity: .38; }
+  .list-row.has-analysis { cursor: pointer; }
+  /* Columns */
+  .list-col-pr { font-family: var(--mono); font-size: 11px; }
+  .list-col-pr a { color: var(--primary); text-decoration: none; }
+  .list-col-pr a:hover { text-decoration: underline; }
+  .list-col-title { min-width: 0; }
+  .list-col-title-text {
+    font-size: 13px; font-weight: 500; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block;
+  }
+  .list-col-title-text:hover { text-decoration: underline; cursor: pointer; }
+  .list-col-author { font-size: 12px; color: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-col-jira a { font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; text-decoration: none;
+    color: #5b8ffa; border: 1px solid rgba(91,143,250,.4); background: rgba(91,143,250,.06); white-space: nowrap; }
+  .list-col-jira a:hover { background: rgba(91,143,250,.14); }
+  /* Review badge */
+  .list-badge-review {
+    font-size: 11px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .list-badge-review.resolved { color: var(--done-dark); }
+  .list-badge-review.pending  { color: var(--review-dark); }
+  .list-badge-review.no_review { color: var(--text-sm); opacity: .6; }
+  .list-badge-review.own      { color: var(--text-sm); opacity: .4; font-style: italic; }
+  /* Actions */
+  .list-col-tars .list-open-btn {
+    font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm);
+    background: var(--primary); color: #000; border: none; cursor: pointer;
+    letter-spacing: .02em; transition: opacity .15s; white-space: nowrap;
+  }
+  .list-col-tars .list-open-btn:hover { opacity: .8; }
+  .list-col-tars .list-no-tars {
+    font-family: var(--mono); font-size: 10px; color: var(--text-sm); opacity: .45;
+  }
+  .list-col-archive .list-archive-btn {
+    font-size: 10px; padding: 4px 8px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent; color: var(--text-sm);
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .list-col-archive .list-archive-btn:hover { border-color: var(--text-sm); color: var(--text); }
+  .list-row.archived .list-archive-btn { color: var(--primary); border-color: var(--primary); }
+  /* Empty */
+  .list-empty { font-family: var(--mono); font-size: 12px; color: var(--text-sm); padding: 32px 0; text-align: center; opacity: .5; }
+  [data-theme="light"] .list-open-btn { color: #fff; }
+  /* Terminal toast */
+  .term-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: #0d0d0d; border: 1px solid #333; border-radius: 8px;
+    padding: 14px 20px 12px; min-width: 420px; max-width: 700px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.7); z-index: 9999;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  }
+  .term-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .term-toast-bar {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  }
+  .term-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .term-dot.r { background: #ff5f57; }
+  .term-dot.y { background: #febc2e; }
+  .term-dot.g { background: #28c840; }
+  .term-toast-title { font-size: 10px; color: #666; margin-left: 4px; letter-spacing: .06em; }
+  .term-toast-line { display: flex; align-items: baseline; gap: 6px; }
+  .term-prompt { color: #28c840; font-size: 13px; font-weight: 700; user-select: none; }
+  .term-cmd { color: #e8e8e8; font-size: 13px; flex: 1; word-break: break-all; }
+  .term-cmd .term-cmd-tars { color: var(--primary, #0ff); font-weight: 700; }
+  .term-cursor {
+    display: inline-block; width: 8px; height: 14px; background: #e8e8e8;
+    margin-left: 2px; vertical-align: middle;
+    animation: term-blink 1s step-end infinite;
+  }
+  @keyframes term-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  .term-toast-hint { font-size: 10px; color: #555; margin-top: 8px; letter-spacing: .04em; }
+  [data-theme="light"] .term-toast { background: #1a1a1a; border-color: #2a2a2a; }
 </style>
 </head>
 <body>
+<div class="term-toast" id="termToast">
+  <div class="term-toast-bar">
+    <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+    <span class="term-toast-title">terminal — pega con ⌘V</span>
+  </div>
+  <div class="term-toast-line">
+    <span class="term-prompt">$</span>
+    <span class="term-cmd" id="termToastCmd"></span>
+    <span class="term-cursor"></span>
+  </div>
+  <div class="term-toast-hint">✓ copiado al portapapeles — pega esto en tu terminal</div>
+</div>
 <script>
 /*__MATRIX_DATA__*/
 
@@ -1200,9 +1355,306 @@ function applyFilter(pid) {
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
+// ── List context rendering ─────────────────────────────────────────────────
+// ── Terminal toast ────────────────────────────────────────────────────────
+let _toastTimer = null;
+function showTermToast(cmd) {
+  const toast = document.getElementById('termToast');
+  const cmdEl = document.getElementById('termToastCmd');
+  // Highlight "/tars" in cyan
+  const parts = cmd.split(' ');
+  cmdEl.innerHTML = parts.map((p, i) => i === 0
+    ? `<span class="term-cmd-tars">${p}</span>`
+    : p
+  ).join(' ');
+  toast.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  toast.addEventListener('click', () => toast.classList.remove('show'), { once: true });
+}
+
+// ── Archive helpers ───────────────────────────────────────────────────────
+function getArchived() { return JSON.parse(localStorage.getItem('tars-archived') || '{}'); }
+function setArchived(id, val) {
+  const a = getArchived();
+  if (val) a[id] = true; else delete a[id];
+  localStorage.setItem('tars-archived', JSON.stringify(a));
+}
+function isArchived(id) { return !!getArchived()[id]; }
+
+// ── Review status helpers ─────────────────────────────────────────────────
+const REVIEW_LABEL = {
+  resolved:  { icon: '✅', text: 'revisado',      cls: 'resolved'  },
+  pending:   { icon: '⏳', text: 'sin respuesta', cls: 'pending'   },
+  no_review: { icon: '➖', text: 'sin review',    cls: 'no_review' },
+  own:       { icon: '—',  text: 'propio',        cls: 'own'       },
+};
+
+function renderList() {
+  const m = MATRIX_DATA;
+  document.title = m.title || 'TARS — Lista de análisis';
+  document.body.appendChild(buildHeader());
+
+  const wrap = el('div', 'list-wrap');
+  const tabs = m.tabs || [];
+
+  // Tab nav
+  let nav = null;
+  if (tabs.length > 1) {
+    nav = el('nav', 'list-tab-nav');
+    tabs.forEach((tab, i) => {
+      const btn = el('button', 'list-tab-btn' + (i === 0 ? ' active' : ''));
+      btn.textContent = tab.name;
+      btn.dataset.ti = i;
+      nav.appendChild(btn);
+    });
+    wrap.appendChild(nav);
+  }
+
+  // Normalize author: if missing, try to extract from label "[author] title" pattern
+  tabs.flatMap(tab => tab.subtabs || [])
+      .flatMap(sub => sub.sections || [])
+      .flatMap(sec => sec.items || [])
+      .forEach(item => {
+        if (!item.author && item.label) {
+          const m = item.label.match(/^\[([^\]]+)\]/);
+          if (m) item.author = m[1];
+        }
+      });
+
+  // Collect all authors across all tabs
+  const allAuthors = [...new Set(
+    tabs.flatMap(tab => tab.subtabs || [])
+        .flatMap(sub => sub.sections || [])
+        .flatMap(sec => sec.items || [])
+        .map(item => item.author)
+        .filter(Boolean)
+  )].sort();
+
+  // Toolbar
+  const toolbar = el('div', 'list-toolbar');
+
+  // Left: author filter pills
+  const toolbarLeft = el('div', 'list-toolbar-left');
+  let activeAuthor = null; // null = todos
+
+  if (allAuthors.length > 1) {
+    const filterLabel = el('span', 'list-filter-label');
+    filterLabel.textContent = 'Autor:';
+    toolbarLeft.appendChild(filterLabel);
+
+    const allPill = el('button', 'list-author-pill active');
+    allPill.textContent = 'todos';
+    allPill.dataset.author = '';
+    toolbarLeft.appendChild(allPill);
+
+    allAuthors.forEach(author => {
+      const pill = el('button', 'list-author-pill');
+      pill.textContent = author;
+      pill.dataset.author = author;
+      toolbarLeft.appendChild(pill);
+    });
+  }
+
+  // Right: archive toggle
+  const toolbarRight = el('div', 'list-toolbar-right');
+  const archiveToggle = el('button', 'list-show-archived-btn');
+  archiveToggle.dataset.showArchived = 'false';
+  toolbarRight.appendChild(archiveToggle);
+
+  toolbar.appendChild(toolbarLeft);
+  toolbar.appendChild(toolbarRight);
+  wrap.appendChild(toolbar);
+
+  // Panels
+  const panels = tabs.map((tab, ti) => {
+    const panel = el('div', 'list-tab-panel' + (ti !== 0 ? ' hidden' : ''));
+    panel.dataset.ti = ti;
+    panel._allItems = [];
+    (tab.subtabs || []).forEach(sub =>
+      (sub.sections || []).forEach(sec =>
+        (sec.items || []).forEach(item => panel._allItems.push(item))
+      )
+    );
+    wrap.appendChild(panel);
+    return panel;
+  });
+
+  document.body.appendChild(wrap);
+
+  function refresh() {
+    const showArchived = archiveToggle.dataset.showArchived === 'true';
+    let totalArchived = 0;
+
+    panels.forEach(panel => {
+      ['list-rows', 'list-empty'].forEach(cls => {
+        const old = panel.querySelector('.' + cls);
+        if (old) old.remove();
+      });
+
+      const rows = el('div', 'list-rows');
+      const hdr = el('div', 'list-col-headers');
+      hdr.innerHTML = '<span>PR</span><span>Título</span><span>Autor</span><span>Jira</span><span>Review</span><span>TARS</span><span></span><span></span>';
+      rows.appendChild(hdr);
+
+      let visible = 0;
+      panel._allItems.forEach(item => {
+        const archived = isArchived(item.id);
+        if (archived) totalArchived++;
+        if (!showArchived && archived) return;
+        if (activeAuthor && item.author !== activeAuthor) return;
+        rows.appendChild(buildListRow(item, archived, () => { setArchived(item.id, !archived); refresh(); }));
+        visible++;
+      });
+      panel.appendChild(rows);
+
+      if (visible === 0) {
+        const empty = el('div', 'list-empty');
+        empty.textContent = activeAuthor
+          ? `No hay PRs de ${activeAuthor}${showArchived ? ' archivados' : ''}.`
+          : (showArchived ? 'No hay ítems archivados.' : 'No hay PRs aquí todavía.');
+        panel.appendChild(empty);
+      }
+    });
+
+    archiveToggle.style.display = totalArchived === 0 ? 'none' : '';
+    archiveToggle.textContent = archiveToggle.dataset.showArchived === 'true'
+      ? `Ocultar archivados (${totalArchived})`
+      : `Mostrar archivados (${totalArchived})`;
+  }
+
+  // Tab switching
+  if (nav) {
+    nav.addEventListener('click', e => {
+      const btn = e.target.closest('.list-tab-btn');
+      if (!btn) return;
+      const ti = +btn.dataset.ti;
+      nav.querySelectorAll('.list-tab-btn').forEach((b, i) => b.classList.toggle('active', i === ti));
+      panels.forEach((p, i) => p.classList.toggle('hidden', i !== ti));
+    });
+  }
+
+  // Author filter
+  toolbarLeft.addEventListener('click', e => {
+    const pill = e.target.closest('.list-author-pill');
+    if (!pill) return;
+    activeAuthor = pill.dataset.author || null;
+    toolbarLeft.querySelectorAll('.list-author-pill').forEach(p => p.classList.toggle('active', p === pill));
+    refresh();
+  });
+
+  archiveToggle.addEventListener('click', () => {
+    archiveToggle.dataset.showArchived = archiveToggle.dataset.showArchived === 'true' ? 'false' : 'true';
+    refresh();
+  });
+
+  refresh();
+}
+
+function buildListRow(item, archived, onToggleArchive) {
+  const hasAnalysis = item.status === 'done' && item.matrix_file;
+  const rowCls = ['list-row', archived ? 'archived' : '', hasAnalysis ? 'has-analysis' : ''].filter(Boolean).join(' ');
+  const row = el('div', rowCls);
+
+  // PR number
+  const prCol = el('div', 'list-col-pr');
+  prCol.innerHTML = item.pr_url
+    ? `<a href="${item.pr_url}" target="_blank" onclick="event.stopPropagation()">#${item.pr_number}</a>`
+    : `#${item.pr_number || '—'}`;
+
+  // Title
+  const titleCol = el('div', 'list-col-title');
+  const titleEl = el('span', 'list-col-title-text');
+  titleEl.textContent = item.label || '(sin título)';
+  titleEl.title = item.label || '';
+  if (item.pr_url) {
+    titleEl.addEventListener('click', e => { e.stopPropagation(); window.open(item.pr_url, '_blank'); });
+  }
+  titleCol.appendChild(titleEl);
+
+  // Author
+  const authorCol = el('div', 'list-col-author');
+  authorCol.textContent = item.author || item.tech_name || '—';
+
+  // Jira
+  const jiraCol = el('div', 'list-col-jira');
+  if (item.jira_ticket && item.jira_url) {
+    jiraCol.innerHTML = `<a href="${item.jira_url}" target="_blank" onclick="event.stopPropagation()">${item.jira_ticket}</a>`;
+  }
+
+  // Review status
+  const reviewCol = el('div', 'list-col-review');
+  const rs = item.review_status || 'no_review';
+  const rl = REVIEW_LABEL[rs] || REVIEW_LABEL.no_review;
+  const badge = el('span', `list-badge-review ${rl.cls}`);
+  badge.innerHTML = `${rl.icon} ${rl.text}`;
+  reviewCol.appendChild(badge);
+
+  // TARS action
+  const tarsCol = el('div', 'list-col-tars');
+  if (hasAnalysis) {
+    const btn = el('button', 'list-open-btn');
+    btn.textContent = 'Abrir análisis →';
+    btn.addEventListener('click', e => { e.stopPropagation(); window.open(item.matrix_file, '_blank'); });
+    tarsCol.appendChild(btn);
+  } else {
+    const span = el('span', 'list-no-tars');
+    span.textContent = 'sin análisis';
+    tarsCol.appendChild(span);
+  }
+
+  // Terminal copy button
+  const terminalCol = el('div', 'list-col-terminal');
+  if (item.pr_url) {
+    const termBtn = el('button', 'list-terminal-btn');
+    termBtn.title = `Copiar: /tars ${item.pr_url}`;
+    termBtn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="2" width="14" height="12" rx="2"/>
+      <polyline points="4,6 7,8.5 4,11"/>
+      <line x1="9" y1="11" x2="13" y2="11"/>
+    </svg>`;
+    termBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const cmd = `/tars ${item.pr_url}`;
+      navigator.clipboard.writeText(cmd).then(() => {
+        showTermToast(cmd);
+        termBtn.classList.add('copied');
+        termBtn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>`;
+        setTimeout(() => {
+          termBtn.classList.remove('copied');
+          termBtn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="2" width="14" height="12" rx="2"/>
+            <polyline points="4,6 7,8.5 4,11"/>
+            <line x1="9" y1="11" x2="13" y2="11"/>
+          </svg>`;
+        }, 1500);
+      });
+    });
+    terminalCol.appendChild(termBtn);
+  }
+
+  // Archive
+  const archiveCol = el('div', 'list-col-archive');
+  const archBtn = el('button', 'list-archive-btn');
+  archBtn.textContent = archived ? '↩ restaurar' : '⊘ archivar';
+  archBtn.addEventListener('click', e => { e.stopPropagation(); onToggleArchive(); });
+  archiveCol.appendChild(archBtn);
+
+  row.append(prCol, titleCol, authorCol, jiraCol, reviewCol, tarsCol, terminalCol, archiveCol);
+
+  if (hasAnalysis) {
+    row.addEventListener('click', () => window.open(item.matrix_file, '_blank'));
+  }
+
+  return row;
+}
+
 function render() {
   const m = MATRIX_DATA;
   document.title = m.title || 'matrix-view';
+
+  // List context: use card dashboard instead of checklist
+  if (m.context === 'list') { renderList(); return; }
 
   const frag = document.createDocumentFragment();
   frag.appendChild(buildHeader());
