@@ -147,6 +147,24 @@
     transition: background .15s, box-shadow .15s; flex-shrink: 0; letter-spacing: .04em;
   }
   .jira-chip:hover { background: rgba(0,200,230,.18); box-shadow: var(--accent-glow); }
+  .branch-chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 500;
+    color: #c9d1d9; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+    padding: 4px 10px; border-radius: var(--radius-sm); font-family: var(--mono);
+    transition: background .15s; flex-shrink: 0; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .branch-chip:hover { background: rgba(255,255,255,.1); }
+  .branch-copy-btn {
+    display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 2px;
+    font-size: .65rem; font-weight: 500; background: rgba(255,255,255,.1); color: #c9d1d9;
+    border: 1px solid rgba(255,255,255,.2); cursor: pointer;
+    transition: background .15s, box-shadow .15s; font-family: var(--font); flex-shrink: 0;
+  }
+  .branch-copy-btn:hover { background: rgba(255,255,255,.18); box-shadow: 0 0 8px rgba(255,255,255,.1); }
+  .branch-copy-btn.copied { background: rgba(0,204,106,.15); color: var(--done-dark); border-color: var(--done-border); }
+  [data-theme="light"] .branch-chip { color: #24292f; background: #f6f8fa; border-color: #d0d7de; }
+  [data-theme="light"] .branch-copy-btn { color: #24292f; background: #f6f8fa; border-color: #d0d7de; }
+  [data-theme="light"] .branch-copy-btn:hover { background: #e9ecef; }
 
   /* ── Summary strip ──────────────────────────────────────────────────────── */
   .summary-strip {
@@ -1050,6 +1068,14 @@ function buildHeader() {
     ? `<a class="jira-chip" href="https://buk.atlassian.net/browse/${m.jira_ticket}" target="_blank">${ICON_JIRA} ${m.jira_ticket}</a>`
     : '';
 
+  const branch = m.branch
+    ? (() => {
+        const cmd = `gfo ${m.branch} && gco ${m.branch}`;
+        const enc = encodeURIComponent(cmd);
+        return `<span class="branch-chip" title="${m.branch}">⎇ ${m.branch}</span><button class="branch-copy-btn" data-branch="${enc}" title="Copiar: ${cmd}">${ICON_COPY} gco</button>`;
+      })()
+    : '';
+
   wrap.innerHTML = `
     <div class="header-top">
       <div class="header-title">
@@ -1059,12 +1085,25 @@ function buildHeader() {
           <div class="header-sub">Suite de verificación de retrocompatibilidad</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
         <button class="theme-btn" id="theme-btn" title="Cambiar tema"></button>
+        ${branch}
         ${jira}
       </div>
     </div>
     <div class="header-badges">${badges}</div>`;
+
+  // Wire up branch copy button
+  wrap.querySelector('.branch-copy-btn')?.addEventListener('click', e => {
+    const btn = e.currentTarget;
+    const cmd = decodeURIComponent(btn.dataset.branch);
+    navigator.clipboard.writeText(cmd).then(() => {
+      btn.classList.add('copied');
+      btn.textContent = '✓ copiado';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `${ICON_COPY} gco`; }, 1800);
+    });
+  });
+
   return wrap;
 }
 
