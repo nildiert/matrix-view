@@ -1098,9 +1098,10 @@ function buildHeader() {
     const btn = e.currentTarget;
     const cmd = decodeURIComponent(btn.dataset.branch);
     navigator.clipboard.writeText(cmd).then(() => {
+      showTermToast(cmd);
       btn.classList.add('copied');
-      btn.textContent = '✓ copiado';
-      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `${ICON_COPY} gco`; }, 1800);
+      btn.innerHTML = `${ICON_COPY} copiado`;
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `${ICON_COPY} gco`; }, 2000);
     });
   });
 
@@ -1547,12 +1548,16 @@ let _toastTimer = null;
 function showTermToast(cmd) {
   const toast = document.getElementById('termToast');
   const cmdEl = document.getElementById('termToastCmd');
-  // Highlight "/tars" in cyan
-  const parts = cmd.split(' ');
-  cmdEl.innerHTML = parts.map((p, i) => i === 0
-    ? `<span class="term-cmd-tars">${p}</span>`
-    : p
-  ).join(' ');
+  // Highlight first word of each command segment (handles "gfo X && gco X", "/tars URL", etc.)
+  const segments = cmd.split(/(\s*&&\s*)/);
+  cmdEl.innerHTML = segments.map(seg => {
+    if (/^\s*&&\s*$/.test(seg)) return `<span style="color:#555"> &amp;&amp; </span>`;
+    const words = seg.trimStart().split(' ');
+    return words.map((w, i) => i === 0 && w
+      ? `<span class="term-cmd-tars">${w}</span>`
+      : w
+    ).join(' ');
+  }).join('');
   toast.classList.add('show');
   if (_toastTimer) clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
