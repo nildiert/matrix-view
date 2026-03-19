@@ -502,6 +502,39 @@
 
   .hidden { display: none !important; }
 
+  /* ── Global Setup Panel ─────────────────────────────────────────────────── */
+  .global-setup-wrap {
+    margin: 0 0 14px 0;
+    border: 1px solid rgba(0,200,230,.3);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .global-setup-toggle {
+    width: 100%; display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; background: rgba(0,200,230,.08);
+    border: none; cursor: pointer; font-family: var(--font);
+    font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--primary-light); text-align: left;
+    transition: background .15s;
+  }
+  .global-setup-toggle:hover { background: rgba(0,200,230,.14); }
+  .global-setup-toggle .setup-chevron { margin-left: auto; font-size: .8rem; transition: transform .2s; }
+  .global-setup-toggle.open .setup-chevron { transform: rotate(90deg); }
+  .global-setup-hint { font-weight: 400; opacity: .6; font-size: .68rem; letter-spacing: .04em; text-transform: none; }
+  .global-setup-body { display: none; }
+  .global-setup-body.open { display: block; }
+
+  /* ── Copy markdown button ───────────────────────────────────────────────── */
+  .copy-md-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 2px; font-size: .70rem; font-weight: 600;
+    background: rgba(0,204,106,.1); color: var(--done-dark); border: 1px solid var(--done-border);
+    cursor: pointer; transition: background .15s, box-shadow .15s; font-family: var(--font);
+    letter-spacing: .04em; flex-shrink: 0;
+  }
+  .copy-md-btn:hover { background: rgba(0,204,106,.2); box-shadow: 0 0 8px rgba(0,204,106,.2); }
+  .copy-md-btn.copied { background: rgba(0,204,106,.25); }
+
   /* ── Scrollbar ──────────────────────────────────────────────────────────── */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -1052,7 +1085,8 @@ function updateSummary(wrap) {
       <div class="progress-bar"><div class="progress-fill" id="pbar" style="width:${pct}%"></div></div>
       <span class="progress-text">${c.done}/${t} <span style="opacity:.7;font-weight:400">verificados</span> · ${pct}%</span>
     </div>
-    ${pills}`;
+    ${pills}
+    <button class="copy-md-btn" id="copy-md-btn" title="Copiar test cases verificados como Markdown">${ICON_COPY} Copiar test cases</button>`;
 }
 
 // ── Legend hint ───────────────────────────────────────────────────────────────
@@ -1099,6 +1133,107 @@ function refreshSubDots() {
   });
 }
 
+// ── Global Setup Panel ─────────────────────────────────────────────────────
+function buildGlobalSetup(sub) {
+  const codes = [];
+  const seen = new Set();
+  (sub.sections||[]).forEach(sec => {
+    (sec.items||[]).forEach(item => {
+      if (item.setup_code && !seen.has(item.setup_code)) {
+        seen.add(item.setup_code);
+        codes.push(item.setup_code);
+      }
+    });
+  });
+  if (!codes.length) return null;
+
+  const wrap = el('div', 'global-setup-wrap');
+
+  const toggle = el('button', 'global-setup-toggle');
+  toggle.innerHTML = `${ICON_CODE} Setup <span class="global-setup-hint">— crea el proceso una vez y úsalo en todos los ítems</span><span class="setup-chevron">▸</span>`;
+
+  const body = el('div', 'global-setup-body');
+
+  codes.forEach((code, i) => {
+    const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const codeWrap = el('div', 'setup-code-wrap');
+    codeWrap.style.margin = '0';
+    codeWrap.style.border = 'none';
+    if (i > 0) codeWrap.style.borderTop = '1px solid rgba(0,200,230,.15)';
+    codeWrap.innerHTML = `
+      <div class="setup-code-header">
+        <span>${ICON_CODE} Setup${codes.length > 1 ? ' ' + (i+1) : ''} · Rails console</span>
+        <button class="copy-btn" data-code="${encodeURIComponent(code)}">${ICON_COPY} Copiar</button>
+      </div>
+      <div class="setup-code-body" style="padding:0"><pre style="margin:0;padding:12px 16px;background:transparent"><code class="language-ruby">${escaped}</code></pre></div>`;
+    codeWrap.querySelectorAll('code.language-ruby').forEach(codeEl => {
+      if (window.hljs) window.hljs.highlightElement(codeEl);
+    });
+    codeWrap.querySelector('.copy-btn')?.addEventListener('click', e => {
+      e.stopPropagation();
+      const c = decodeURIComponent(e.currentTarget.dataset.code);
+      navigator.clipboard?.writeText(c).then(() => {
+        soundCopy();
+        const b = e.currentTarget;
+        b.textContent = '✓ Copiado';
+        setTimeout(() => { b.innerHTML = `${ICON_COPY} Copiar`; }, 1800);
+      });
+    });
+    body.appendChild(codeWrap);
+  });
+
+  toggle.addEventListener('click', () => {
+    const open = body.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+    toggle.querySelector('.setup-chevron').textContent = open ? '▾' : '▸';
+  });
+
+  wrap.appendChild(toggle);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+// ── Copy checked items as Markdown ────────────────────────────────────────
+function copyCheckedAsMarkdown() {
+  const lines = [`# ${MATRIX_DATA.title}`, ''];
+  let hasAny = false;
+  (MATRIX_DATA.tabs||[]).forEach(tab => {
+    let tabLines = [`## ${tab.name}`];
+    let tabHas = false;
+    (tab.subtabs||[]).forEach(sub => {
+      let subLines = [`### ${sub.name}`];
+      let subHas = false;
+      (sub.sections||[]).forEach(sec => {
+        let secLines = [`**${sec.name}**`];
+        let secHas = false;
+        (sec.items||[]).forEach(item => {
+          if (getStatus(item.id, item.status) === 'done') {
+            secLines.push(`- [x] ${item.label}`);
+            secHas = subHas = tabHas = hasAny = true;
+          }
+        });
+        if (secHas) subLines = subLines.concat(secLines, ['']);
+      });
+      if (subHas) tabLines = tabLines.concat(subLines);
+    });
+    if (tabHas) lines.push(...tabLines, '');
+  });
+  if (!hasAny) {
+    const btn = document.getElementById('copy-md-btn');
+    if (btn) { btn.textContent = '— Nada marcado aún'; setTimeout(() => { btn.innerHTML = `${ICON_COPY} Copiar test cases`; }, 2000); }
+    return;
+  }
+  navigator.clipboard?.writeText(lines.join('\n')).then(() => {
+    soundCopy();
+    const btn = document.getElementById('copy-md-btn');
+    if (btn) {
+      btn.textContent = '✓ Copiado';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = `${ICON_COPY} Copiar test cases`; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
 // ── Sub panel ─────────────────────────────────────────────────────────────────
 function buildSubPanel(sub, si, ti, active) {
   const panel = el('div','sub-panel'+(active?' active':''));
@@ -1111,6 +1246,10 @@ function buildSubPanel(sub, si, ti, active) {
     d.innerHTML = `<span style="color:var(--text-xs)">→</span> ${sub.description}`;
     panel.appendChild(d);
   }
+
+  // Global Setup Panel
+  const setupPanel = buildGlobalSetup(sub);
+  if (setupPanel) panel.appendChild(setupPanel);
 
   // Toolbar
   const tb = el('div','toolbar');
@@ -1737,8 +1876,9 @@ function render() {
     applyFilter(pid);
   });
 
-  // Summary pill quick-filter
+  // Summary pill quick-filter + copy markdown (delegation so it survives updateSummary re-renders)
   document.getElementById('summary-strip')?.addEventListener('click', e => {
+    if (e.target.closest('#copy-md-btn')) { copyCheckedAsMarkdown(); return; }
     const pill = e.target.closest('.stat-pill[data-qs]');
     if (!pill) return;
     const qs = pill.dataset.qs;
