@@ -24,10 +24,11 @@
     --primary-light: #00e5ff;
     --primary-pale:  rgba(0,200,230,.06);
 
-    --done-dark:   #00e57a; --done:   #00cc6a; --done-bg:   rgba(0,204,106,.08); --done-border:   rgba(0,204,106,.3);
-    --pending-dark:#5a93a8; --pending:#3a6070; --pending-bg:rgba(58,96,112,.08); --pending-border:rgba(58,96,112,.25);
-    --review-dark: #ffd166; --review: #ffb700; --review-bg: rgba(255,183,0,.08);  --review-border: rgba(255,183,0,.35);
-    --na-dark:     #2a4055; --na:     #1e3040; --na-bg:     rgba(14,28,43,.5);    --na-border:     rgba(30,48,64,.6);
+    --done-dark:     #00e57a; --done:     #00cc6a; --done-bg:     rgba(0,204,106,.08);  --done-border:     rgba(0,204,106,.3);
+    --pending-dark:  #5a93a8; --pending:  #3a6070; --pending-bg:  rgba(58,96,112,.08);  --pending-border:  rgba(58,96,112,.25);
+    --review-dark:   #ffd166; --review:   #ffb700; --review-bg:   rgba(255,183,0,.08);  --review-border:   rgba(255,183,0,.35);
+    --na-dark:       #2a4055; --na:       #1e3040; --na-bg:       rgba(14,28,43,.5);    --na-border:       rgba(30,48,64,.6);
+    --untested-dark: #c084fc; --untested: #a855f7; --untested-bg: rgba(168,85,247,.08); --untested-border: rgba(168,85,247,.35);
 
     --accent-glow: 0 0 8px rgba(0,200,230,.4), 0 0 20px rgba(0,200,230,.15);
     --done-glow:   0 0 8px rgba(0,204,106,.4);
@@ -61,10 +62,11 @@
     --primary-light: #1e40af;
     --primary-pale:  rgba(37,99,235,.06);
 
-    --done-dark:    #16a34a; --done:    #22c55e; --done-bg:    rgba(34,197,94,.08);  --done-border:    rgba(34,197,94,.3);
-    --pending-dark: #4b5563; --pending: #9ca3af; --pending-bg: rgba(156,163,175,.1); --pending-border: rgba(156,163,175,.3);
-    --review-dark:  #b45309; --review:  #f59e0b; --review-bg:  rgba(245,158,11,.08); --review-border:  rgba(245,158,11,.35);
-    --na-dark:      #9ca3af; --na:      #d1d5db; --na-bg:      rgba(209,213,219,.2); --na-border:      rgba(209,213,219,.5);
+    --done-dark:     #16a34a; --done:     #22c55e; --done-bg:     rgba(34,197,94,.08);   --done-border:     rgba(34,197,94,.3);
+    --pending-dark:  #4b5563; --pending:  #9ca3af; --pending-bg:  rgba(156,163,175,.1);  --pending-border:  rgba(156,163,175,.3);
+    --review-dark:   #b45309; --review:   #f59e0b; --review-bg:   rgba(245,158,11,.08);  --review-border:   rgba(245,158,11,.35);
+    --na-dark:       #9ca3af; --na:       #d1d5db; --na-bg:       rgba(209,213,219,.2);  --na-border:       rgba(209,213,219,.5);
+    --untested-dark: #7c3aed; --untested: #8b5cf6; --untested-bg: rgba(139,92,246,.08);  --untested-border: rgba(139,92,246,.35);
 
     --accent-glow: 0 0 0 2px rgba(37,99,235,.15);
     --done-glow:   none;
@@ -184,10 +186,11 @@
     letter-spacing: .04em;
   }
   .stat-pill:hover { transform: translateY(-1px); }
-  .stat-pill.done    { color: var(--done-dark);    background: var(--done-bg);    border-color: var(--done-border); }
-  .stat-pill.pending { color: var(--pending-dark); background: var(--pending-bg); border-color: var(--pending-border); }
-  .stat-pill.review  { color: var(--review-dark);  background: var(--review-bg);  border-color: var(--review-border); }
-  .stat-pill.na      { color: var(--na-dark);      background: var(--na-bg);      border-color: var(--na-border); }
+  .stat-pill.done     { color: var(--done-dark);     background: var(--done-bg);     border-color: var(--done-border); }
+  .stat-pill.pending  { color: var(--pending-dark);  background: var(--pending-bg);  border-color: var(--pending-border); }
+  .stat-pill.review   { color: var(--review-dark);   background: var(--review-bg);   border-color: var(--review-border); }
+  .stat-pill.na       { color: var(--na-dark);       background: var(--na-bg);       border-color: var(--na-border); }
+  .stat-pill.untested { color: var(--untested-dark); background: var(--untested-bg); border-color: var(--untested-border); }
 
   /* ── Legend hint ────────────────────────────────────────────────────────── */
   .legend-hint {
@@ -235,9 +238,10 @@
   .subtab-btn.active { color: var(--primary-light); border-bottom-color: var(--primary-light); font-weight: 600; }
   .subtab-dots { display: flex; gap: 3px; align-items: center; }
   .sdot { width: 5px; height: 5px; border-radius: 50%; }
-  .sdot.done    { background: var(--done); box-shadow: 0 0 4px var(--done); }
-  .sdot.pending { background: var(--pending); }
-  .sdot.review  { background: var(--review); box-shadow: 0 0 4px var(--review); }
+  .sdot.done     { background: var(--done);     box-shadow: 0 0 4px var(--done); }
+  .sdot.pending  { background: var(--pending); }
+  .sdot.review   { background: var(--review);   box-shadow: 0 0 4px var(--review); }
+  .sdot.untested { background: var(--untested); box-shadow: 0 0 4px var(--untested); }
 
   /* ── Content ────────────────────────────────────────────────────────────── */
   .content { padding: 24px 32px; }
@@ -320,12 +324,14 @@
   }
   .todo-row:hover { background: rgba(0,200,230,.04); }
   .todo-row:hover::before { background: var(--border-2); }
-  .todo-row.done   { background: var(--done-bg); }
+  .todo-row.done     { background: var(--done-bg); }
   .todo-row.done::before { background: var(--done); box-shadow: var(--done-glow); }
-  .todo-row.review { background: var(--review-bg); }
+  .todo-row.review   { background: var(--review-bg); }
   .todo-row.review::before { background: var(--review); box-shadow: var(--review-glow); }
-  .todo-row.na     { background: var(--na-bg); opacity: .5; }
+  .todo-row.na       { background: var(--na-bg); opacity: .5; }
   .todo-row.na::before { background: var(--na-border); }
+  .todo-row.untested { background: var(--untested-bg); }
+  .todo-row.untested::before { background: var(--untested); box-shadow: 0 0 8px rgba(168,85,247,.4); }
   /* Pulse animation on status change */
   @keyframes statusPulse {
     0%   { opacity: 1; }
@@ -370,10 +376,11 @@
     font-weight: 600; border: 1px solid; white-space: nowrap; margin-top: 2px;
     cursor: pointer; transition: all .15s; letter-spacing: .06em; text-transform: uppercase;
   }
-  .status-badge.done    { color: var(--done-dark);    background: var(--done-bg);    border-color: var(--done-border); }
-  .status-badge.pending { color: var(--pending-dark); background: var(--pending-bg); border-color: var(--pending-border); }
-  .status-badge.review  { color: var(--review-dark);  background: var(--review-bg);  border-color: var(--review-border); }
-  .status-badge.na      { color: var(--na-dark);      background: var(--na-bg);      border-color: var(--na-border); }
+  .status-badge.done     { color: var(--done-dark);     background: var(--done-bg);     border-color: var(--done-border); }
+  .status-badge.pending  { color: var(--pending-dark);  background: var(--pending-bg);  border-color: var(--pending-border); }
+  .status-badge.review   { color: var(--review-dark);   background: var(--review-bg);   border-color: var(--review-border); }
+  .status-badge.na       { color: var(--na-dark);       background: var(--na-bg);       border-color: var(--na-border); }
+  .status-badge.untested { color: var(--untested-dark); background: var(--untested-bg); border-color: var(--untested-border); }
 
   /* Setup code block */
   .setup-code-wrap {
@@ -951,9 +958,9 @@
 <script>
 /*__MATRIX_DATA__*/
 
-const STATUS_CYCLE  = ['pending', 'done', 'review', 'na'];
-const STATUS_ICON   = { done: '✓', pending: '', review: '!', na: '—' };
-const STATUS_LABEL  = { done: 'Listo', pending: 'Pendiente', review: 'Revisar', na: 'N/A' };
+const STATUS_CYCLE  = ['pending', 'done', 'review', 'untested', 'na'];
+const STATUS_ICON   = { done: '✓', pending: '', review: '!', untested: '⚠', na: '—' };
+const STATUS_LABEL  = { done: 'Listo', pending: 'Pendiente', review: 'Revisar', untested: 'Sin test', na: 'N/A' };
 
 // ── Web Audio (Arwes-style sound effects) ─────────────────────────────────
 let _actx = null;
@@ -1023,14 +1030,14 @@ function setStatus(id, s)   { const st = loadState(); st[id] = s; saveState(st);
 
 // ── Counters ──────────────────────────────────────────────────────────────────
 function countSections(sections) {
-  const c = { done: 0, pending: 0, review: 0, na: 0 };
+  const c = { done: 0, pending: 0, review: 0, untested: 0, na: 0 };
   (sections || []).forEach(sec => (sec.items || []).forEach(i => {
     const s = getStatus(i.id, i.status); c[s] = (c[s]||0) + 1;
   }));
   return c;
 }
 function countAll() {
-  const c = { done: 0, pending: 0, review: 0, na: 0 };
+  const c = { done: 0, pending: 0, review: 0, untested: 0, na: 0 };
   (MATRIX_DATA.tabs||[]).forEach(t => (t.subtabs||[]).forEach(s => {
     const sub = countSections(s.sections);
     Object.keys(c).forEach(k => c[k] += sub[k]);
@@ -1153,7 +1160,7 @@ function buildSubNav(subtabs, ti) {
   wrap.dataset.ti = ti;
   subtabs.forEach((sub, si) => {
     const c = countSections(sub.sections);
-    const dots = ['done','pending','review'].filter(s=>c[s]>0)
+    const dots = ['done','pending','review','untested'].filter(s=>c[s]>0)
       .map(s=>`<span class="sdot ${s}" title="${c[s]} ${STATUS_LABEL[s]}"></span>`).join('');
     const btn = el('button','subtab-btn'+(si===0?' active':''));
     btn.dataset.ti = ti; btn.dataset.si = si;
@@ -1167,7 +1174,7 @@ function refreshSubDots() {
     const sub = MATRIX_DATA.tabs?.[btn.dataset.ti]?.subtabs?.[btn.dataset.si];
     if (!sub) return;
     const c = countSections(sub.sections);
-    const dots = ['done','pending','review'].filter(s=>c[s]>0)
+    const dots = ['done','pending','review','untested'].filter(s=>c[s]>0)
       .map(s=>`<span class="sdot ${s}"></span>`).join('');
     btn.querySelector('.subtab-dots').innerHTML = dots;
   });
